@@ -1,15 +1,10 @@
 ---
-title: "Paper Title Number 1"
+title: "Strain partitioning between nerves and axons: Estimating axonal strain using sodium channel staining in intact peripheral nerves"
 collection: publications
-permalink: /publication/2009-10-01-paper-title-number-1
-excerpt: 'This paper is about the number 1. The number 2 is left for future work.'
-date: 2009-10-01
-venue: 'Journal 1'
-paperurl: 'http://academicpages.github.io/files/paper1.pdf'
-citation: 'Your Name, You. (2009). &quot;Paper Title Number 1.&quot; <i>Journal 1</i>. 1(1).'
+permalink: /publication/2018-11-01-Strain-partitioning-between-nerves-and-axons.md
+date: 2018-11-01
+venue: 'Journal of neuroscience methods'
+paperurl: '[http://academicpages.github.io/files/paper1.pdf](https://www.sciencedirect.com/science/article/pii/S0165027018302371)'
 ---
-This paper is about the number 1. The number 2 is left for future work.
 
-[Download paper here](http://academicpages.github.io/files/paper1.pdf)
-
-Recommended citation: Your Name, You. (2009). "Paper Title Number 1." <i>Journal 1</i>. 1(1).
+[Download paper here](https://ora.ox.ac.uk/objects/uuid:33889821-1749-4966-8a85-708c4a79b5bf/download_file?file_format=application%2Fpdf&safe_filename=Bianchi%2Bet%2Bal.%2C%2BStrain%2Bpartitioning.pdf&type_of_work=Journal+article)
