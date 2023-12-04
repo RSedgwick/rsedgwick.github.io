@@ -27,6 +27,7 @@ Research Interests
 
 - **Bayesian optimisation and active learning** – techniques and methods for learning about a black box function in an intelligent way.  
 - **Transfer learning** – how we can use information learnt from one task to inform another, with the aim of reducing experimental burden.  
-- **Biotechnology and diagnostics**  – collaborating with experimentalists to develop better medical diagnostics for point of care settings.  
+- **Biotechnology and diagnostics**  – collaborating with experimentalists to develop better medical diagnostics for point of care settings.
 - **Design of experiments** – how we can use Bayesian machine learning techniques improve experimental design for lab experiments.  
-- **Causal discovery and active learning** – how we can improve posteriors over graphs with the aim of using them in decision processes.  
+- **Causal discovery and active learning** – how we can improve posteriors over graphs with the aim of using them in decision processes.
+- **Machine learning for air pollution monitoring** - how we can improve predictions of air pollution levels for improved decision making. 
