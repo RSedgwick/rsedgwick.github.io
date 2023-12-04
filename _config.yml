@@ -81,7 +81,7 @@ analytics:
 # Site Author
 author:
   name             : "Ruby Sedgwick"
-  avatar           : "images/ruby.jpeg"
+  avatar           : "profile.png"
   bio              : "Post Doctoral Research Assistant in Machine Learning for Biotechnology"
   location         : "Imperial College London"
   employer         :
