@@ -1,5 +1,5 @@
 ---
-title: "Strain partitioning between nerves and axons: Estimating axonal strain using sodium channel staining in intact peripheral nerves"
+title: "Strain Partitioning Between Nerves and Axons: Estimating Axonal Strain Using Sodium Channel Staining in Intact Peripheral Nerves"
 collection: publications
 permalink: /publication/2018-11-01-Strain-partitioning-between-nerves-and-axons.md
 date: 2018-11-01
