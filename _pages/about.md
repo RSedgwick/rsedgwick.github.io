@@ -17,9 +17,9 @@ Projects
 ======
 
 - My main PhD project focused on transfer learning Bayesian optimisation to optimise DNA molecules for use in medical diagnostics.  
-- I also developed a design of experiments strategy for validating or invalidating designed biomolecular networks in a small number of experiments. You can find our Neurips 2020 ML4Molecules Workshop paper [here](https://arxiv.org/abs/2011.10575).  
-- I co-supervised a master's student project investigating the use of sparse Gaussian processes to improve air pollution predictions in Kampala, in a collaboration with [AirQo](https://www.airqo.net/) that started at the [2022 AI for Social Good Dagstuhl workshop](https://ai4sg-dagstuhl.github.io/). You can read our Neurips 2023 Climate Change AI workshop paper [here](https://arxiv.org/abs/2311.16625).  
-- I'm currently working on an integrated machine learning design of experiments approach for the design of affinity proteins and development of a lateral flow test, in collaboration with experimentalists from Imperial college london and KTH Royal Institute of Technology in Sweden.  
+- I also developed a design of experiments strategy for validating or invalidating designed biomolecular networks in a small number of experiments. You can find our NeurIPS 2020 ML4Molecules Workshop paper [here](https://arxiv.org/abs/2011.10575).  
+- I co-supervised a master's student project investigating the use of sparse Gaussian processes to improve air pollution predictions in Kampala, in a collaboration with [AirQo](https://www.airqo.net/) that started at the [2022 AI for Social Good Dagstuhl workshop](https://ai4sg-dagstuhl.github.io/). You can read our NeurIPS 2023 Climate Change AI workshop paper [here](https://arxiv.org/abs/2311.16625).  
+- I'm currently working on an integrated machine learning design of experiments approach for the design of affinity proteins and development of a lateral flow test, in collaboration with experimentalists from Imperial College London and KTH Royal Institute of Technology in Sweden.  
 - I'm also working on a project with other machine learning researchers at Imperial using Bayesian methods to improve posteriors over causal graphs.
 
 Research Interests
