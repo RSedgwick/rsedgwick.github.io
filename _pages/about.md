@@ -11,7 +11,7 @@ redirect_from:
 About Me
 ======
 
-I am a post-doctoral research assistant at Imperial College London using machine learning for the design of experiments for biotechnology applications. I previously did a PhD (awaiting my viva) at Imperial College London as part of the [UKRI Centre for Doctoral Training in AI for Healthcare](https://ai4health.io/) supervised by [Ruth Misener](https://www.imperial.ac.uk/people/r.misener), [Mark van der Wilk](https://mvdw.uk/) and [Molly Stevens](https://www.stevensgroup.org/).  
+I am a post-doctoral research assistant at Imperial College London using machine learning for the design of experiments for biotechnology applications. I previously did a PhD at Imperial College London as part of the [UKRI Centre for Doctoral Training in AI for Healthcare](https://ai4health.io/) supervised by [Ruth Misener](https://www.imperial.ac.uk/people/r.misener), [Mark van der Wilk](https://mvdw.uk/) and [Molly Stevens](https://www.stevensgroup.org/).  
 
 Projects
 ======
