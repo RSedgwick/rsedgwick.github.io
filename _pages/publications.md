@@ -5,6 +5,10 @@ permalink: /publications/
 author_profile: true
 ---
 
+[Transfer Learning Bayesian Optimization to Design Competitor DNA Molecules for Use in Diagnostic Assays](https://arxiv.org/abs/2402.17704) \
+**Ruby Sedgwick**, John P. Goertz, Molly M. Stevens, Ruth Misener, Mark van der Wilk \
+_In preparation_
+
 [Gaussian Processes for Monitoring Air-Quality in Kampala](https://arxiv.org/abs/2311.16625) \
 Clara Stoddart, Lauren Shrack, Richard Sserunjogi, Usman Abdul-Ganiy, Engineer Bainomugisha, Deo Okure, Ruth Misener, Jose Pablo Folch, **Ruby Sedgwick** \
 _Climate Change AI Neurips Workshop 2023_
