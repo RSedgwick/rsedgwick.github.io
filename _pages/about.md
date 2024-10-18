@@ -15,7 +15,7 @@ I am a post-doctoral research assistant at Imperial College London interested in
 
 Projects
 ======
-- I'm currently working on a project with researchers at Imperial College London and Oxford University using Bayesian model selection for multivariate causal discovery. Check back soon for updates.
+- Currently, I am working on a project with researchers at Imperial College London and Oxford University using Bayesian model selection for multivariate causal discovery. Check back soon for updates.
 - I've also collaborated on a project extending Gaussian process latent variable models to the case where each data point is a weighted sum of signals, specifically for applications in spectroscopy.
 - In collaboration with experimentalists from Oxford University and KTH Royal Institute of Technology in Sweden, I am working on an integrated machine learning design of experiments approach 
  the development of lateral flow tests.
