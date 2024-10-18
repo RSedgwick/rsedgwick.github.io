@@ -32,4 +32,11 @@ Research Interests
 - **Transfer learning** – how we can use information learnt from one task to inform another, with the aim of reducing experimental burden.  
 - **Biotechnology and diagnostics**  – collaborating with experimentalists to develop better medical diagnostics for point of care settings.
 - **Design of experiments** – how we can use Bayesian machine learning techniques to improve experimental design for lab experiments.  
-- **Machine learning for air pollution monitoring** - how we can improve predictions of air pollution levels for improved decision making. 
+- **Machine learning for air pollution monitoring** - how we can improve predictions of air pollution levels for improved decision making.
+
+  
+Talks
+======
+- Talk on Gaussian process latent variable models at the [Sargent Centre 2024 Summer School on data-driven optimisation: Bayesian optimisation](https://www.imperial.ac.uk/process-systems-engineering/courses-and-seminars/summer-school/).
+- Talk on Transfer Learning Gaussian Processes for DNA Design at the [Gaussian Process Summer School 2024](https://gpss.cc/gpss24/workshop.html). [[video](https://www.youtube.com/watch?list=PLZ_xn3EIbxZF-HhT99I3yIb-BdylSM3M-&v=JQOKCbVLAEg)] [[slides](https://gpss.cc/gpss24/slides/Sedgwick2024.pdf)]
+
