@@ -1,0 +1,23 @@
+\documentclass[
+%% TIKZ_CLASSOPTION %%
+tikz
+]{standalone}
+\usepackage{amsmath}
+\usetikzlibrary{matrix}
+%% EXTRA_TIKZ_PREAMBLE_CODE %%
+\begin{document}
+%% TIKZ_CODE %%
+\usetikzlibrary{bayesnet}
+\usetikzlibrary{arrows,automata}
+
+  \tikz{
+ \node[obs] (x) {$X_i$};%
+ \node[obs,right=of x,xshift=0.25cm] (y) {$Y_i$};
+ \node[latent,left=of x,xshift=-0.15cm] (phi) {$\phi$};
+ \node[latent,right=of y,xshift=0.15cm] (theta) {$\theta$};
+ \plate[inner sep=0.3cm, xshift=0cm, yshift=0.12cm] {plate1} {(x) (y)} {$i = 1,\ldots, n$};
+ \edge {x} {y};
+ \edge {phi} {x};
+ \edge {theta} {y} }
+
+\end{document}
