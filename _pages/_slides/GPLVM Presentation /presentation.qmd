@@ -1,0 +1,2526 @@
+---
+title: "Gaussian Process Latent Variable Models"
+title-slide-attributes:
+  data-background-image: images/imperial_logo.jpg,
+  data-background-position: right 25px top 25px
+  data-background-size: 20%, 20%
+  data-background-opacity: "0.8"
+
+width: 1150
+height: 700
+
+subtitle: ""
+
+author:
+  - name: Ruby Sedgwick
+    email: r.sedgwick19@imperial.ac.uk
+    affiliations: Imperial College London
+
+format:
+  revealjs:
+    slide-number: true
+    chalkboard:
+      buttons: false
+    css: styles.css
+    preview-links: auto
+    theme: [default, custom.scss]
+    html-math-method: mathjax	
+  # html:
+  #       code-overflow: wrap
+  pdf:
+    code-overflow: wrap
+    keep-tex: true
+    # include-in-header: 
+    #    text: |
+    #      \usepackage{fvextra}
+    #      \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+    #      \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+
+
+# include-in-header:
+#   - text: |
+#       <style>
+#       .cell-output-stdout code {
+#         word-break: break-wor !important;
+#         white-space: pre-wrap !important;
+#       }
+#       </style>
+
+---
+<!-- ## Motivation
+\definecolor{causalcolour}{rgb}{0.00, 0 .0, 1.0}
+\newcommand{\veryshortarrow}[1][3pt]{\mathrel{%
+   \hbox{\rule[\dimexpr\fontdimen22\textfont2-.2pt\relax]{#1}{.4pt}}%
+   \mkern-4mu\hbox{\usefont{U}{lasy}{m}{n}\symbol{41}}}}
+\newcommand{\model}{\mathcal{M}}
+\newcommand{\xcausey}{\model_{\textbf{X} \rightarrow Y}}
+\newcommand{\ycausex}{\model_{X \leftarrow \textbf{Y}}}
+\newcommand{\nomodelxcausey}{\textbf{\color{causalcolour}X} \rightarrow Y}
+\newcommand{\nomodelycausex}{X\leftarrow\textbf{\color{causalcolour}Y}}
+\newcommand{\setmarginals}{\mathcal{R}}
+\newcommand{\setconditionals}{\mathcal{C}}
+\newcommand{\bfx}{\mathbf{x}}
+\newcommand{\bfy}{\mathbf{y}}
+\newcommand{\suchthat}{\,\,|\,\,}
+\newcommand{\data}{\mathcal{D}}
+\newcommand{\calcd}[1][]{\mathrm{d}#1\xspace}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{bayesnet}
+
+
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Data is often high dimensional
+:::  -->
+
+## Overview
+
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Motivation.
+:::
+:::
+
+::: {.fragment}
+- Principal component analysis.
+:::
+
+::: {.fragment}
+- Gaussian process latent variable models.
+:::
+
+::: {.fragment}
+- Applications.
+:::
+
+
+## Motivation
+
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Data is often high dimensional.
+:::
+:::
+
+::: {.fragment}
+- In theory, in high dimensions we need a lot of data to learn anything (curse of dimensionality).
+:::
+
+::: {.fragment}
+- Often the data actually lies on a lower dimensional manifold.
+:::
+
+::: {.fragment}
+- This means we can use useful representations from relatively small amounts of data.
+:::
+
+
+
+## Motivation
+
+::: {style="margin-top: 1.0em"}
+We want to learn a mapping from low dimensional space to a high dimensional space  
+$$
+h \in \mathbb{R}^Q \mapsto y \in \mathbb{R}^D
+$$
+
+where $y$ is observed, $h$ is an unobserved latent variable, and $D > Q$. 
+:::
+
+::: {.fragment}
+::: {style="margin-top: 0.0em"}
+
+<div style="display: flex; align-items: center; justify-content: center;"> 
+
+  <!-- First image -->
+  <img src="images/3d_s_curve_flat.png" alt="3D S-Curve" style="width: 45%; height: auto ; margin-left: 250px;">
+
+  <!-- Arrow in the middle -->
+  <div style="font-size: 3em; margin: 0 10px 0 5px;">&#8594;</div>
+
+  <!-- Second image -->
+  <img src="images/3d_s_curve.png" alt="3D S-Curve Flat" style="width: 60%; height: auto;">
+
+</div>
+
+:::
+:::
+
+<!-- :::: {.columns .middle}
+::: {.column width="35%"}
+::: {style="text-align: center"}
+::: {.fragment}
+Data is often high dimensional  
+<img src="images/3d_s_curve.png" alt="drawing" height="300"/>
+
+:::
+:::
+::: -->
+
+<!-- ::: {.column width="0%"}
+<!-- Empty column for spacing -->
+<!-- :::  -->
+<!-- 
+::: {.column width="65%"}
+::: {style="text-align: center"}
+::: {.fragment}
+Often the data actually lies on a low dimensional manifold  
+<img src="images/3d_s_curve_flat.png" alt="drawing" height="250"/>
+
+:::
+:::
+:::
+::::  -->
+
+## Motivating Example
+
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Simulated Dataset, with 12 spatial dimensions, of pipeline transporting a mix of oil, water and gas[^1].
+:::
+
+::: {style="font-size: 0.6em"}
+|     | 0     | 1     | 2     | 3     | 4     | 5     | 6     | 7     | 8     | 9     | 10    | 11    |
+|-----|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
+| 0   | 0.6022| 0.4851| 0.9271| 0.4647| 1.1818| 0.3103| 1.7287| 0.0006| 2.1438| -0.1692| 0.0210| 1.7062|
+| 1   | 0.7532| 0.3612| 0.3635| 1.0189| 0.3685| 0.5868| 0.3342| 1.0666| 0.2891| 0.6552| 0.3743| 1.0184|
+| 2   | 0.5023| 0.2296| 0.8095| 0.3391| 0.8645| 0.4546| 0.7044| 0.4620| 0.8431| 0.5025| 0.7605| 0.3984|
+| ... | ...   | ...   | ...   | ...   | ...   | ...   | ...   | ...   | ...   | ...   | ...   | ...   |
+:::
+:::
+ 
+::: {.fragment}
+- The flow in the pipe takes one of the three flow configurations: horizontally stratified, nested annular or homogeneous mixture flow.
+:::
+
+::: {.fragment}
+- However, the data is inherently two dimensional as the flow is determined by the fractions of water and oil (fraction of air is then determined as it must sum to one).
+:::
+
+[^1]:Bishop, Christopher M., and Gwilym D. James. ‘Analysis of multiphase flows using dual-energy gamma densitometry and neural networks’. Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 327.2-3 (1993): 580-593.
+
+
+<!-- ::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Single cell gene expression dataset[^1] 
+:::
+:::
+
+[^1]:Guo, Guoji, et al. "Resolution of cell fate decisions revealed by single-cell gene expression analysis from zygote to blastocyst." Developmental cell 18.4 (2010): 675-685. available at: <https://github.com/sods/ods>
+
+::: {.fragment}
+- 48 genes measured at 437 time points
+:::
+::: {.fragment}
+  -  However, we know there are 10 stages of development 
+:::
+::: {.fragment}
+How can we interpret this data? 
+::: -->
+
+
+## Principal Component Analysis
+
+::: {.fragment}
+<!-- ::: {style="margin-top: -1.5em"} -->
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+Can we learn a low dimensional representation of this data?
+:::
+:::
+
+:::: {.columns}
+:::{.column width="60%"}
+<!-- ::: {style="margin-top: 1.0em"}  -->
+::: {.fragment}
+- For a dataset $Y = [\mathbf{y}_1, ..., \mathbf{y}_N]^T$, $\mathbf{y}_n \in \mathbb{R}^{D}$,
+:::
+
+::: {.fragment}
+- We assume a linear mapping:
+$$\mathbf{y}_n = \mathbf{W}\mathbf{h}_n,$$
+where $\mathbf{y}_n \in \mathbb{R}^D$ is the observed data, $\mathbf{h}_n \in \mathbb{R}^Q$ is the corrosponding latent point and $\mathbf{W} \in \mathbb{R}^{D \times Q}$ is a linear mapping.
+
+<!-- - $H=[\mathbf{h}_1, ..., \mathbf{h}_N]^T$,  $\mathbf{h}_n \in \mathbb{R}^{Q}$ are points in a low dimensional latent space.
+- $Y = [\mathbf{y}_1, ..., \mathbf{y}_N]^T$, $\mathbf{y}_n \in \mathbb{R}^{P}$ are observations.
+- $W \in \mathbb{R}^{D\times Q}$ is a linear mapping. -->
+:::
+
+
+::: {.fragment}
+::: {style="margin-top: -1.0em"} 
+- $\mathbf{W}$ can be calculated in closed form by finding the eigenvalues and vectors of the covariance matrix $cov(\mathbf{Y},\mathbf{Y}).$
+
+<!-- - $H=[\mathbf{h}_1, ..., \mathbf{h}_N]^T$,  $\mathbf{h}_n \in \mathbb{R}^{Q}$ are points in a low dimensional latent space.
+- $Y = [\mathbf{y}_1, ..., \mathbf{y}_N]^T$, $\mathbf{y}_n \in \mathbb{R}^{P}$ are observations.
+- $W \in \mathbb{R}^{D\times Q}$ is a linear mapping. -->
+:::
+:::
+
+
+:::
+:::{.column width="40%"}
+::: {.fragment}
+::: {style="margin-top: 2.0em"} 
+<!-- ::: {style="margin-top: 0.5em"}  -->
+<figure style="text-align: center;">
+  <img src="images/PPCA_oil_flow.png" alt="drawing" width="500"/>
+  <figcaption>PCA on the Oil Flow Dataset</figcaption>
+</figure>
+
+:::
+:::
+:::
+::::
+
+::: {style="margin-top: -1.5em"} 
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+::: {.fragment}
+But real data is noisy...
+:::
+:::
+:::
+
+## Probabilistic Principal Component Analysis
+ 
+::: {.fragment}
+- In Probabilistic PCA we assume the data in noisy:
+:::
+::: {.fragment}
+::: {style="text-align: center"} 
+$$
+\mathbf{y}_n = \mathbf{W}\mathbf{h}_n + \epsilon_n,
+$$
+
+:::
+:::
+
+::: {.fragment}
+- where $\epsilon_n$ is a Gaussian noise term with variance $\sigma^2$:
+:::
+::: {.fragment}
+::: {style="text-align: center"} 
+$$
+\epsilon_n \sim \mathcal{N}(\epsilon_n| \mathbf{0}, \sigma^2\mathbf{I}).
+$$
+
+:::
+:::
+
+::: {.fragment}
+- This gives us the likelihood: 
+:::
+::: {.fragment}
+::: {style="text-align: center"}
+$$
+p(\mathbf{y}_n |\mathbf{h}_n, \mathbf{W}, \sigma^2) = \mathcal{N}(\mathbf{y}_n | \mathbf{W}\mathbf{h}_n, \sigma^2\mathbf{I}).
+$$
+
+:::
+:::
+
+## Probabilistic Principal Component Analysis
+
+::: {.fragment}
+- Normally in PPCA, the latents are marginalised out by applying the prior $p(\mathbf{h}_n) = \mathcal{N}(\mathbf{0}, \mathbf{I})$, giving a marginal likelihood of:
+
+    $$\begin{align*}
+    p(\mathbf{y}_n | \mathbf{h}_n, \mathbf{W}, \sigma^2) & = \int p(\mathbf{y}_n |\mathbf{h}_n, \mathbf{W}, \sigma^2)p(\mathbf{h}_n) d\mathbf{h}_n  \\
+    & = \mathcal{N}(\mathbf{y}_n | \mathbf{0}, \mathbf{W}\mathbf{W}^T + \sigma^2\mathbf{I}).
+    \end{align*}$$
+:::
+
+::: {.fragment}
+- However, we can instead marginalise out $\mathbf{W}$ using the prior:
+
+$$p(\mathbf{W}) = \prod_{i=1}^D\mathcal{N}(\mathbf{w_i}|\mathbf{0}, \mathbf{I}).$$
+
+:::
+
+## Probabilistic Principal Component Analysis
+
+:::  {.fragment}
+- For a set of data points $Y = [\mathbf{y}_1, ..., \mathbf{y}_N]^T$ and corropsonding latent variables $H=[\mathbf{h}_1, ..., \mathbf{h}_N]^T$, using this prior allows the marginal likelihood to take the form: 
+$$p(Y|\mathbf{H}, \sigma^2) = \prod_{i=1}^D p(\mathbf{y}_{:,d}|\mathbf{H}, \sigma^2),$$
+where:
+$$p(\mathbf{y}_{:,d} |\mathbf{h}_{:,d}, \sigma^2) = \mathcal{N}(\mathbf{y}_{:,d} | \mathbf{0}, \mathbf{H}\mathbf{H}^T + \sigma^2\mathbf{I}).$$
+
+:::
+
+:::  {.fragment}
+- We can then get $\mathbf{W}$ by optimising this marginal likelihood.
+:::
+
+## Probabilistic Principal Component Analysis
+
+:::  {.fragment}
+<figure style="text-align: center;">
+  <img src="images/PPCA_oil_flow.png" alt="drawing" width="400"/>
+  <figcaption>PPCA on the Oil Flow Dataset</figcaption>
+</figure>
+
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+Probabilistic Principal Component Analysis gives us a linear mapping $\mathbf{h} \mapsto \mathbf{y}$.
+:::
+:::
+
+:::  {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"} 
+Is there a way we can learn more complex mappings? 
+:::
+:::
+
+## Gaussian Process Latent Variable Model [^2] 
+
+
+::: {.fragment} 
+:::: {.columns}
+:::{.column width="55%"}
+
+::: {style="margin-top: 1.0em"} 
+- We can use a Gaussian process model but this time the inputs $\mathbf{H}=[\mathbf{h}_1, ..., \mathbf{h}_N]^T$ are **not observed**.
+:::
+- The outputs $\mathbf{Y} = [\mathbf{y}_1, ..., \mathbf{y}_N]^T$ are observed.
+:::
+:::{.column width="45%"}
+<img src="images/gaussian_process.png" alt="drawing" height="250"/> 
+:::
+::::
+:::
+
+[^2]:Lawrence, Neil. "Probabilistic non-linear principal component analysis with Gaussian process latent variable models." Journal of machine learning research 6.11 (2005).
+
+::: {.fragment}
+::: {style="margin-top: -1.5em"} 
+- This gives us the generative model: 
+
+$$ 
+\mathbf{y} = f(\mathbf{h}) + \mathbf{\epsilon} ~~~~ f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{h}, \mathbf{h})) ~~~~\mathbf{\epsilon} \sim \mathcal{N}(0, \sigma_n^2).
+$$
+
+:::
+:::
+
+::: {.fragment}
+::: {style="margin-top: -1.0em"} 
+- $\mathbf{h}_n \in \mathbb{R}^{Q}$ and $\mathbf{y}_n \in \mathbb{R}^{D}$, $D>Q$ and $\sigma_n^2$ is the noise variance. Kernel $k(\mathbf{h}, \mathbf{h})$ is parameterised by hyperparameters $\mathbf{\theta}$.
+::: 
+:::
+
+## Gaussian Process Latent Variable Model
+
+::: {.fragment}
+<!-- ::: {style="margin-top: 1.0em"} -->
+- We find the optimal latent variables $\mathbf{H}$, kernel hyperparameters $\mathbf{\theta}$ and noise variance $\sigma_n^2$ by optimising the log marginal likelihood.
+:::
+
+::: {.fragment}
+- To do this we take the likelihood:
+
+<!-- ::: {style="margin-top: -1.5em"}  -->
+$$
+p(\mathbf{Y}|\mathbf{F}, \mathbf{H}, \mathbf{\theta}, \sigma_n^2),
+$$
+
+:::
+
+::: {.fragment}
+- and marginalize out the function values $\mathbf{F}=f(\mathbf{H})$:
+
+<!-- ::: {style="margin-top: -1.5em"}  -->
+$$\begin{align*}
+     p(\mathbf{Y}|\mathbf{H}, \mathbf{\theta}, \sigma_n^2) &= \int p(\mathbf{Y}|\mathbf{F}, \mathbf{H}, \mathbf{\theta}, \sigma_n^2) p(\mathbf{F}|\mathbf{H},\mathbf{\theta}) dF \\
+    & = \mathcal{N}(0, K(\mathbf{H}, \mathbf{H}) + \sigma_n^2 \mathbf{I}).
+    \end{align*}
+$$
+
+:::
+
+
+## Gaussian Process Latent Variable Model
+
+::: {.fragment}
+<!-- ::: {style="margin-top: -1.5em"}  -->
+- This gives the log marginal likelihood:
+$$
+ \begin{align*}
+    \log p(\mathbf{Y}|\mathbf{H}, \mathbf{\theta}, \sigma_n^2) =  & - \underbrace{\frac{1}{2} \text{Tr}(K_H+\sigma_n^2\mathbf{I})^{-1}\mathbf{Y}\mathbf{Y}^T}_{\text{ data fit}}  - \underbrace{\frac{D}{2} \log|K_H+\sigma_n^2\mathbf{I}| }_{\text{complexity penalty}} \\ & - \underbrace{\frac{D N}{2}\log 2 \pi}_{\text{norm. constant}}.
+    \end{align*}
+$$
+where $K_H=K(\mathbf{H},\mathbf{H})$.
+
+:::
+
+
+## Gaussian Process Latent Variable Model
+
+:::  {.fragment}
+- Our GPLVM marginal likelihood is:
+
+::: {style="margin-top: -1em"} 
+$$\begin{align*} 
+p(Y|H, \mathbf{\theta}, \sigma_n^2) = \mathcal{N}(0, K(H, H) + \sigma_n^2 \mathbf{I}).
+\end{align*}
+$$
+
+:::
+:::  
+
+:::  {.fragment}
+- What does this look a lot like?
+:::
+
+:::  {.fragment}
+- Our PPCA marginal likelihood is:
+
+::: {style="margin-top: -1.5em"} 
+$$p(Y|X, \sigma^2) = \prod_{i=1}^D p(\mathbf{y}_{:,d}|X, \sigma^2),$$
+:::
+::: {style="margin-top: -1.5em"} 
+where:
+$$p(\mathbf{y}_n |\mathbf{h}_n, \sigma^2) = \mathcal{N}(\mathbf{y}_n | \mathbf{0}, \mathbf{H}\mathbf{H}^T + \sigma^2\mathbf{I}).$$
+
+:::
+:::
+
+::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+PPCA is equivalent to GPLVM with a linear kernel! 
+:::
+::: 
+
+## PPCA vs GPLVM 
+
+:::: {.columns}
+::: {.column width="45%"}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+PPCA
+:::
+:::{style="margin: -1em; padding: -1em;"}
+::: {style="text-align: center; margin: -1em;"}
+<img src="images/PPCA_oil_flow.png" alt="drawing" width="450"/> 
+
+:::
+:::
+:::{style="margin: 0; padding: 0;"}
+::: {style="text-align: center; margin: 0;"}
+Linear mapping
+:::
+:::
+::: {style="font-size: 0.8em"}
+$$p(\mathbf{y}_n |\mathbf{h}_n, \sigma^2) = \mathcal{N}(\mathbf{y}_n | \mathbf{0}, \mathbf{H}\mathbf{H}^T + \sigma^2\mathbf{I}).$$
+:::
+
+:::
+
+::: {.column width="10%"}
+<!-- empty column to create gap -->
+:::
+::: {.column width="45%"}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+GPLVM
+:::
+:::{style="margin: -1em; padding: -1em;"}
+::: {style="text-align: center; margin: -1em;"}
+<img src="images/GPLVM_oil_flow.png" alt="drawing" width="450"/> 
+
+:::
+:::
+:::{style="margin: 0; padding: 0;"}
+::: {style="text-align: center; margin: 0;"}
+Non-linear mapping
+:::
+:::
+::: {style="font-size: 0.8em"}
+$$\begin{align*} 
+p(Y|H, \mathbf{\theta}, \sigma_n^2) = \mathcal{N}(0, K(\mathbf{H}, \mathbf{H}) + \sigma_n^2 \mathbf{I}).
+\end{align*}
+$$
+
+:::
+:::
+::::
+
+<!-- ::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+PPCA is equivalent to GPLVM with a linear kernel! 
+:::
+::: -->
+
+
+## Limitations of GPLVM
+
+:::: {.columns}
+::: {.column width="45%"}
+::: {.fragment}
+::: {style="text-align: center; margin-top:3.0em"}
+- There is no good way to choose the dimensions of the latent space $Q$.
+:::
+:::
+
+::: {.fragment}
+<!-- ::: {style="text-align: center; margin-top:1.0em"} -->
+- Latent variables $H$ are deterministic, which can lead to overfitting.
+:::
+
+::: {.fragment}
+<!-- ::: {style="text-align: center; margin-top:1.0em"} -->
+- There is a version of the GPLVM called the Bayesian GPLVM that addresses these issues.
+:::
+:::
+
+::: {.column width="10%"}
+<!-- empty column to create gap -->
+:::
+
+::: {.column width="45%"}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+GPLVM
+:::
+:::{style="margin: -1em; padding: -1em;"}
+::: {style="text-align: center; margin: -1em;"}
+<img src="images/GPLVM_oil_flow.png" alt="drawing" width="450"/> 
+
+:::
+:::
+:::{style="margin: 0; padding: 0;"}
+::: {style="text-align: center; margin: 0;"}
+Non-linear mapping
+:::
+:::
+::: {style="font-size: 0.8em"}
+$$\begin{align*} 
+p(Y|H, \mathbf{\theta}, \sigma_n^2) = \mathcal{N}(0, K(\mathbf{H}, \mathbf{H}) + \sigma_n^2 \mathbf{I}).
+\end{align*}$$
+:::
+
+:::
+::::
+
+<!-- 
+## Bayesian Gaussian Process Latent Variable Model [^3] 
+
+
+:::  {.fragment}
+:::: {.columns}
+::: {.column width="60%"}
+- What if we put a prior on $H$? 
+    $$
+    \mathbf{h}_n \sim \mathcal{N}(\mathbf{\mu}_{h_n}, \Sigma_{h_n})
+    $$
+:::
+
+::: {.column width="40%"}
+<img src="images/standard_normal.png" alt="drawing" width="300"/> 
+
+:::
+::::
+:::
+
+::: {.fragment} 
+::: {style="margin-top: -1.0em"} 
+- The marginal likelihood then becomes:
+$$
+p(Y|H, \mathbf{\theta}, \sigma_n) = \int p(Y|F, H, \mathbf{\theta}, \sigma_n) p(F|H, \mathbf{\theta}) p(H) dF dH.
+$$
+:::
+:::
+[^3]:Titsias, Michalis, and Neil D. Lawrence. "Bayesian Gaussian process latent variable model." Proceedings of the thirteenth international conference on artificial intelligence and statistics. JMLR Workshop and Conference Proceedings, 2010.
+
+
+::: {.fragment}
+::: {style="margin-top: -1.0em"} 
+- However this is intractable! $H$ appears non-linearly in inverse of $K(H,H) + \sigma^2\mathbf{I}$.
+:::
+:::
+
+::: {.fragment}
+- To solve this problem we use a method called variational inference.
+:::   -->
+
+<!-- 
+::: {.fragment}
+- However the marginal like is now intractable as $H$ appears non-linearly in inverse of $K(H,H) + \sigma^2\mathbf{I}$.
+:::
+
+::: {.fragment}
+- To solve this problem we are going to use a technique called variational inference.
+::: -->
+
+<!-- ## Variational Inference
+
+
+:::: {.columns}
+::: {.column width="60%"}
+:::{style="margin-top:1.0em}
+::: {.fragment}
+- Variational inference is a useful technique for approximating a distribution that can't be calculated directly.
+:::
+:::
+::: {.fragment}
+- We define an approximate distribution $q(x)$ of a form that is tractable.
+:::
+
+:::
+::: {.column width="40%"}
+<img src="images/vi.png" alt="drawing" width="400"/> 
+
+:::
+::::
+
+::: {.fragment}
+::: {style="margin-top:-1.0em}
+- We then minimise the distance between this approximate distribution $q(x)$ and the true distribution $p(x)$.
+:::
+:::
+::: {.fragment}
+- So to learn the true distribution we minimise the Kullback-Leibler divergence which is a measure of distance between two distributions:
+$$KL(q(x)|| p(x)) = \int q(x) \log \frac{q(x)}{p(x)} dx.$$
+::: -->
+
+<!-- 
+::: {.fragment}
+:::: {.columns}
+::: {.column width="60%"}
+
+:::
+::: {.column width="40%"}
+<img src="images/vi_1.png" alt="drawing" width="300"/> 
+
+:::
+::::
+:::
+
+
+::: {.fragment}
+:::: {.columns}
+::: {.column width="60%"}
+
+- We then minimise the distance between this approximate distribution $q(x)$ and the true distribution $p(x)$ using the 
+the Kullback-Leibler divergence, which is a measure of distance between two distributions
+
+- So to learn the true distribution we minimise the KL-divergence
+$$KL(q(x)|| p(x)) = \int q(x) \log \frac{q(x)}{p(x)} dx $$
+:::
+::: {.column width="40%"}
+
+<img src="images/vi.png" alt="drawing" width="300"/> 
+
+:::
+::::
+::: -->
+
+
+
+<!-- ::: {.fragment}
+- We define an approximate distribution $q(x)$ of a form that is tractable 
+::: -->
+
+<!-- ::: {.fragment}
+- We then minimise the distance between this approximate distribution $q(x)$ and the true distribution $p(x)$
+:::
+
+::: {.fragment}
+- We use the Kullback-Leibler divergence, which is a measure of distance between two distributions
+:::
+
+::: {.fragment}
+- So to learn the true distribution we minimise the KL-divergence
+$$KL(q(x)|| p(x)) = \int q(x) \log \frac{q(x)}{p(x)} dx $$
+:::  -->
+
+<!-- 
+## Bayesian GPLVM Variational Inference
+
+::: {.fragment}
+- Our marginal likelihood is intractable:
+$$p(Y|H, \mathbf{\theta}, \sigma_n) = \int p(Y|F, H, \mathbf{\theta}, \sigma_n) p(F|H, \mathbf{\theta}) p(H) dF dH.$$
+
+:::
+::: {.fragment}
+- To address this we will use a variational distribution over the latent variables: 
+$$q(H) = \prod^N_{n=1} \mathcal{N}(\mathbf{h_n}| M_n, S_n), $$
+where $M_n$ and $S_n$ are the mean a variance of the variational distribution $q(\mathbf{h}_n)$.
+:::
+
+## Bayesian GPLVM Variational Inference
+
+::: {.fragment}
+- A lower bound can then be expressed via Jensen's inequality ($\mathbb{E}[g(x)] \geq g(\mathbb{E}[x])$) as follows:
+$$\begin{align*}
+    \log p(Y|H) &= \log \int p(Y|H) p(H) dH \\
+     & = \log \int p(Y|H) p(H) \frac{q(H)}{q(H)} dH \\
+     & \geq \int q(H) \log \frac{p(Y|H) p(H)}{q(H)} dH.
+\end{align*}$$
+:::
+::: {.fragment}
+::: {style="margin-top:-2.0em}
+This can be rearranged to: 
+$$
+    \log p(Y|H) \geq \underbrace{\int q(H) \log p(Y|H) dH}_{\text{still intractable!}} - \underbrace{\int q(H) \log \frac{ q(H)}{p(H)} dH}_{\text{easy to calculate}}.
+    \label{eq:BGPLVM_LB}
+$$
+:::
+::: -->
+
+<!-- ## Bayesian GPLVM VI 
+
+::: {.fragment}
+- we make $\int q(H) \log p(Y|H) dH$  by including inducing points (like in sparse Gaussian processes). After some manipulation we get the lower bound:
+:::
+
+$$\begin{multline*}
+    \log p(Y|H) \geq  \int q(H) \Biggl[ \int q(U) \Biggl( \int p(F| U, H) \log p(Y|F) ~d(F) \\  + \log\frac{p(U}{q(U)} \Biggr) ~ d(U)    - \log \frac{ q(H)}{p(H)} \Biggr] dH.
+\end{multline*}
+$$
+
+- So by maximising our lower bound, we can maximise our marginal likelihood  -->
+
+<!-- ## Bayesian GPLVM VI 
+
+- How do we make $\int q(H) \log p(Y|H) dH$ tractable?
+- Add $N_U$ inducing variables $U = \in \mathbb{R}^{N_U \times D}$ evaluated at inducing point locations $Z = [\mathbf{z}_1, ..., \mathbf{z}_{N_U}]^T$ where $Z \in \mathbb{R}^{N_U \times Q}$
+- This gives a joint Gaussian process prior between $F$ and $U$ as:
+$$ p(F, U | H, Z) = p(F|U, H, Z) p(U |Z),
+$$
+- The joint distribution is then:
+$$p(Y, F, U | H, Z) = p(Y| F)p(F|U, H, Z) p(U |Z). $$
+- Conditioning on $U$ decouples $F$ from each other meaning: 
+ $$p(Y|H) = \prod_{n=1}^N p(\mathbf{y_n}|H).$$ -->
+
+<!-- ## Bayesian GPLVM VI 
+
+Include illistration of inducing variables / points
+
+- How do we make $\int q(H) \log p(Y|H) dH$ tractable?
+- Add $N_U$ inducing variables $U = \in \mathbb{R}^{N_U \times D}$ evaluated at inducing point locations $Z = [\mathbf{z}_1, ..., \mathbf{z}_{N_U}]^T$ where $Z \in \mathbb{R}^{N_U \times Q}$
+- This gives a joint Gaussian process prior between $F$ and $U$ as:
+$$ p(F, U | H, Z) = p(F|U, H, Z) p(U |Z),$$
+- The joint distribution is then:
+$$ p(Y, F, U | H, Z) = p(Y| F)p(F|U, H, Z) p(U |Z). $$
+
+## Bayesian GPLVM VI  -->
+<!-- 
+- Conditioning on $U$ decouples $F$ from each other meaning: 
+ $$p(Y|H) = \prod_{n=1}^N p(\mathbf{y_n}|H).$$
+- This means $p(Y)$ can be found by marginalising out $F$ and $U$ for any value of $Z$.
+
+## Bayesian GPLVM VI  -->
+<!-- 
+- By introducing a second variational distribution:
+ $$q(F, U) = p(F| U, H) q(U),$$
+ we can get a tractable lower bound:
+ $$
+ \begin{align*}
+    \log p(Y|H) &= \log  \int p(Y|F) p(F |U, H) p(U) dH \\
+    &= \log \int p(Y|F) p(F |U, H) p(U) \frac{p(F |U, H) q(U)}{p(F |U, H) q(U)} dH \\
+    &= \log \mathbb{E} \left[\frac{p(Y| F) p(F |U, H) p(U)}{p(F |U, H) q(U)}\right]_{p(F |U, H) q(U)} \\
+    &\geq \int p(F |U, H) q(U) \log \left( \frac{p(Y|F) p(U)}{q(U)}  \right) ~ dF dU \\
+    &= \int q(U) \left( \int p(F| U, H) \log p(Y|F) ~d(F) + \log\frac{p(U)}{q(U)} \right) ~ dU, 
+  \end{align*}
+  $$ -->
+<!-- 
+## Bayesian GPLVM VI 
+
+- Putting this back into our lower bound we get: 
+$$\begin{multline*}
+    \log p(Y|H) \geq  \int q(H) \Biggl[ \int q(U) \Biggl( \int p(F| U, H) \log p(Y|F) ~d(F) \\  + \log\frac{p(U}{q(U)} \Biggr) ~ d(U)    - \log \frac{ q(H)}{p(H)} \Biggr] dH.
+\end{multline*}
+$$
+
+- This is tractable! We therefore can maximise this lower bound instead of maximising the marginal likelihood.  -->
+
+
+<!-- ## The Evolution of GPLVMs
+
+::: {style="margin-top: 4em"} 
+![](images/GPLVMs_of.png)
+::: -->
+
+<!-- ## BGPLVM Automatic Dimensionality reduction
+
+:::  {.fragment}
+- If we use an automatic relevance determining (ARD) kernel then the BGPLVM can automatically choose the dimensions. These kernels take the form:
+$$K(H,H) = \prod_{d=1}^D k(\mathbf{h}_{:,d},\mathbf{h}_{:,d})$$
+:::
+
+- Plots of inverse lengthscales for GPLVM and BGPLVM with 5D for gene dataset.  -->
+
+## Use Cases
+
+::: {.fragment}
+::: {style="margin-top: 5.0em"}
+- Learning pseudo-time in single cell data.
+:::
+:::
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Learning latent dynamics of motion capture data. 
+:::
+:::
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Multi-output Gaussian processes.
+:::
+:::
+
+## Psuedo-time in Single Cell Data
+
+:::: {.columns}
+::: {.column width="45%"}
+
+::: {.fragment}
+::: {style="margin-top: 1.0em"}
+- Single cell gene expression dataset[^4].
+:::
+:::
+
+[^4]:Guo, Guoji, et al. "Resolution of cell fate decisions revealed by single-cell gene expression analysis from zygote to blastocyst." Developmental cell 18.4 (2010): 675-685. available at: <https://github.com/sods/ods>
+
+::: {.fragment}
+- 48 genes measured at 437 time points (i.e. $Y\in\mathbb{R}^{48 \times 437}$).
+:::
+::: {.fragment}
+-  However, we know there are 10 stages of development with a branching pattern. 
+:::
+:::
+
+::: {.column width="10%"}
+<!-- empty column to create gap -->
+:::
+::: {.column width="45%"}
+
+Cell Differentiation Hierarchy
+```{r, engine = 'tikz'}
+\begin{tikzpicture}[sibling distance=10em, level distance=2em,
+  every node/.style = {shape=rectangle, rounded corners,
+    draw, align=center, top color=white, bottom color=blue!20},
+    edge from parent/.style={draw, -latex}]
+
+% Define the tree structure
+\node {t=1}
+    child { node {t=2}
+        child { node {t=4}
+            child { node {t=8}
+                child { node {t=16}
+                    child { node {t=32 TE}
+                        child { node {t=64 TE} }
+                    }
+                    child { node {t=32 ICM}
+                        child { node {t=64 EPI} }
+                        child { node {t=64 PE} }
+                    }
+                }
+            }
+        }
+    };
+\end{tikzpicture}
+```
+:::
+::::
+
+::: {.fragment}
+<!-- ::: {style="margin-top: 1.0em"} -->
+::: {style="text-align: center; color: #107895; font-size: 1em; font-weight: 900em"}
+Can we use a GPLVM to distinguish the different stages of cell developement?
+:::
+:::
+
+## Psuedo-time in Cell lines [^5]
+
+
+::: {.fragment}
+1. Take observed data $Y\in\mathbb{R}^{48 \times 437}$.
+:::
+
+::: {.fragment}
+:::: {.columns}
+::: {.column width="40%"}
+<!-- ::: {style="margin-top: -2.0em"} -->
+
+
+<figure style="text-align: center;">
+  
+<img src="images/PCA_cell_data.png" alt="drawing" width="350"/> 
+
+</figure>
+
+<!-- ::: -->
+:::
+::: {.column width="60%"}
+2. Use the real time $\mathbf{\tau} \in \mathbb{R}^{N}$ to initialise the first dimension of the latent variable:
+    $$p(\mathbf{h}_{n,0}) =\mathbf{\tau}_{n,0}.$$
+
+:::
+::::
+:::
+
+::: {.fragment}
+:::: {.columns}
+::: {.column width="60%"}
+3. Train the model by maximising the log marginal likelihood.
+:::
+::: {.column width="40%"}
+::: {style="margin-top: -2.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/lml.png" alt="drawing" width="350"/> 
+
+</figure>
+
+:::
+:::
+::::
+:::
+
+<!-- 
+::: {.fragment}
+3. Train the model using the marginal likelihood
+
+:::
+
+:::
+
+::: {.column width="10%"}
+<!-- empty column to create gap -->
+<!-- :::
+::: {.column width="45%"}
+
+<img src="images/BGPLVM_cell_data.png" alt="drawing" width="500"/> 
+
+:::
+:::: -->
+
+[^5]:Ahmed, Sumon, Magnus Rattray, and Alexis Boukouvalas. "GrandPrix: scaling up the Bayesian GPLVM for single-cell data." Bioinformatics 35.1 (2019): 47-54.
+
+## Psuedo-time in Cell lines 
+
+
+::: {style="margin-top: 2.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/GPLVM_cell_data.png" alt="drawing" height="450"/> 
+  <figcaption> GPLVM fitted to single-cell data. </figcaption>
+
+</figure>
+
+:::
+
+<!-- [^5]:Ahmed, Sumon, Magnus Rattray, and Alexis Boukouvalas. "GrandPrix: scaling up the Bayesian GPLVM for single-cell data." Bioinformatics 35.1 (2019): 47-54. -->
+
+## Psuedo-time in Cell lines 
+
+
+::: {style="margin-top: 2.0em"}
+
+<figure style="text-align: center;">
+  
+<img src="images/PPCA_GPLVM_cell_data.png" alt="drawing" height="450"/> 
+  <figcaption> PPCA and GPLVM fitted to single-cell data. </figcaption>
+
+</figure>
+
+
+:::
+
+<!-- [^5]:Ahmed, Sumon, Magnus Rattray, and Alexis Boukouvalas. "GrandPrix: scaling up the Bayesian GPLVM for single-cell data." Bioinformatics 35.1 (2019): 47-54. -->
+
+
+
+## Motion Capture Data [^6]
+
+[^6]:Grochow, Keith, et al. "Style-based inverse kinematics." ACM SIGGRAPH 2004 Papers. 2004. 522-531.
+
+:::: {.columns}
+::: {.column width="60%"}
+
+::: {.fragment}
+::: {style="margin-top: 2.0em"}
+- Each pose is represented by a 42 dimensional vector which consists of joint angles, and the position and orientation of the root of the kinematic chain.
+:::
+:::
+::: {.fragment}
+- They then use a Gaussian process latent variable model to learn a low dimensional representation of the movement.
+:::
+::: {.fragment}
+- This has applications in animation from creating poses for interactive characters to doing real-time motion capture with missing markers.
+:::
+:::
+::: {.column width="40%"}
+::: {style="margin-top: 1.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/motion_capture.png" alt="drawing" width="350"/> 
+
+  <figcaption>Image from Grochow, Keith, et al.</figcaption>
+</figure>
+
+:::
+
+:::
+::::
+
+<!-- ::: {.fragment}
+::: {style="margin-top: 2.0em"}
+- Each pose is represented by a 42 dimensional vector which consists of joint angles, and the position and orientation of the root of the kinematic chain.
+:::
+:::
+::: {.fragment}
+- They then use a Gaussian process latent variable model to learn a low dimensional representation of the movement.
+:::
+::: {.fragment}
+- This has applications in animation from creating poses for interactive characters to doing real-time motion capture with missing markers.
+::: -->
+
+## Motion Capture Data
+
+
+::: {style="margin-top: 3.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/grochow-et-al-2004.png" alt="drawing" width="800"/> 
+
+  <figcaption>Grochow et al. [^6] Human Motion Capture Latent Space. </figcaption>
+</figure>
+
+:::
+[^6]:Grochow, Keith, et al. "Style-based inverse kinematics." ACM SIGGRAPH 2004 Papers. 2004. 522-531.
+
+
+## Multi-output Gaussian Processes [^7]
+
+:::: {.columns}
+::: {.column width="45%"}
+
+::: {.fragment}
+::: {style="margin-top: 3.0em"}
+- Multiple output functions $\{y_p\}_{p=1}^P$.
+:::
+:::
+::: {.fragment}
+- In this model, the latent variable Gaussian process is assumed to have observed input dimensions $\boldsymbol{x} \in \mathbb{R}^{D_x}$ as well as unobserved one $\boldsymbol{h} \in \mathbb{R}^{Q}$:
+$$
+y_p(\boldsymbol{x}) = f(\boldsymbol{x}, \boldsymbol{h}_p) + \epsilon. 
+$$
+
+:::
+
+:::
+
+::: {.column width="55%"}
+::: {.fragment}
+::: {style="margin-top: 2.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/LVMOGP_without_bayesian.png" alt="drawing" width="650"/> 
+
+  <figcaption>Latent Variable Multi-output Gaussian Process </figcaption>
+</figure>
+
+:::
+:::
+
+:::
+::::
+
+
+<!-- ::: {.fragment}
+- In this model, the latent variable Gaussian process is assumed to have observed input dimensions as well as unobserved one $\boldsymbol{x} \in \mathbb{R}^{D_x}$:
+$$
+y_p(\boldsymbol{x}) = f(\boldsymbol{x}, \boldsymbol{h}_p) + \epsilon. 
+$$
+
+:::
+
+::: {.fragment}
+<figure style="text-align: center;">
+  
+<img src="images/LVMOGP_without_bayesian.png" alt="drawing" width="600"/> 
+
+  <figcaption>Latent Variable Multi-output Gaussian Process </figcaption>
+</figure>
+
+::: -->
+
+[^7]:Dai, Zhenwen, Mauricio Álvarez, and Neil Lawrence. "Efficient modeling of latent information in supervised learning using gaussian processes." Advances in Neural Information Processing Systems 30 (2017).
+
+## Multi-output Gaussian Processes 
+
+:::: {.columns}
+::: {.column width="45%"}
+
+::: {style="margin-top: 3.0em"}
+::: {.fragment}
+- This allows us to learn the correlation between different output functions, similar to the linear model of coregionalisation.
+:::
+:::
+
+::: {.fragment}
+- This is useful for a range of applications including multi-fidelty and multi-task optimisation.
+:::
+
+:::
+
+::: {.column width="55%"}
+::: {style="margin-top: 2.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/LVMOGP_without_bayesian.png" alt="drawing" width="650"/> 
+
+  <figcaption>Latent Variable Multi-output Gaussian Process </figcaption>
+</figure>
+
+:::
+
+:::
+::::
+
+## Multi-output Gaussian Processes for Transfer Learning [^8]
+
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {style="margin-top: 2.0em"}
+<figure style="text-align: center;">
+  
+<img src="images/hutter1.jpg" alt="drawing" width="650"/> 
+
+  <figcaption> Simulated process data of the five historic products for the first experimental condition. The markers × represent measurements whichare taken after each full day.</figcaption>
+</figure>
+
+:::
+:::
+
+::: {.column width="50%"}
+
+
+<figure style="text-align: center;">
+  
+<img src="images/hutter2.jpg" alt="drawing" width="400"/> 
+
+  <figcaption> One example of a product embedding. The dimensions of the embedding space do not carry any specific physical meaning rather the information isencoded in the distances between points. </figcaption>
+</figure>
+
+
+:::
+::::
+
+[^8]:Hutter, Clemens, et al. "Knowledge transfer across cell lines using hybrid Gaussian process models with entity embedding vectors." Biotechnology and Bioengineering 118.11 (2021): 4389-4401.
+
+<!-- 
+
+<figure style="text-align: center;">
+  
+<img src="images/LVMOGP_without_bayesian.png" alt="drawing" width="600"/> 
+
+  <figcaption>Latent Variable Multi-output Gaussian Process </figcaption>
+</figure> -->
+
+<!-- [^7]:Dai, Zhenwen, Mauricio Álvarez, and Neil Lawrence. "Efficient modeling of latent information in supervised learning using gaussian processes." Advances in Neural Information Processing Systems 30 (2017). -->
+
+
+
+## Summary 
+
+::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em"}
+Gaussian processes can be used to learn low dimensional representations of high dimensional data.
+:::
+:::
+
+::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em"}
+Probabilistic Principal Component Analysis is equivalent to a Gaussian process latent variable model with a linear kernel.
+:::
+:::
+
+::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em"}
+This can be used for a wide range of applications such as grouping development stages in cell lines and determining latent dynamics of a system.
+:::
+:::
+
+## Useful References
+
+- Lawrence, Neil, and Aapo Hyvärinen. [Probabilistic non-linear principal component analysis with Gaussian process latent variable models.](https://jmlr.org/papers/volume6/lawrence05a/lawrence05a.pdf) Journal of machine learning research 6.11 (2005).
+- Titsias, Michalis, and Neil D. Lawrence. [Bayesian Gaussian process latent variable model.](https://proceedings.mlr.press/v9/titsias10a/titsias10a.pdf) Proceedings of the thirteenth international conference on artificial intelligence and statistics. JMLR Workshop and Conference Proceedings, 2010.
+- Ahmed, Sumon, Magnus Rattray, and Alexis Boukouvalas. [GrandPrix: scaling up the Bayesian GPLVM for single-cell data.](https://academic.oup.com/bioinformatics/article/35/1/47/5047752) Bioinformatics 35.1 (2019): 47-54.
+- Grochow, Keith, et al. [Style-based inverse kinematics.](https://www.cs.utoronto.ca/~jacobson/seminar/grochow-et-al-2004.pdf) ACM SIGGRAPH 2004 Papers. 2004. 522-531.
+- Dai, Zhenwen, Mauricio Álvarez, and Neil Lawrence. [Efficient modeling of latent information in supervised learning using gaussian processes.](https://proceedings.neurips.cc/paper/2017/file/1680e9fa7b4dd5d62ece800239bb53bd-Paper.pdf) Advances in Neural Information Processing Systems 30 (2017).
+<!-- - Li, Ping, and Songcan Chen. [A review on Gaussian process latent variable models.](https://www.sciencedirect.com/science/article/pii/S2468232216300828) CAAI Transactions on Intelligence Technology 1.4 (2016): 366-376. -->
+<!-- - Lalchand, Vidhi, Aditya Ravuri, and Neil D. Lawrence. [Generalised GPLVM with stochastic variational inference.](https://proceedings.mlr.press/v151/lalchand22a.html) International Conference on Artificial Intelligence and Statistics. PMLR, 2022. -->
+
+
+
+## The end! And Some Useful Resources...
+
+- Getting started with GPLVMs:
+  - [pyro jupyter notebook demonstration on the cell data](https://pyro.ai/examples/gplvm.html)
+  - [pytorch jupyter notebook on GPLVMs](https://docs.gpytorch.ai/en/latest/examples/045_GPLVM/Gaussian_Process_Latent_Variable_Models_with_Stochastic_Variational_Inference.html)
+  - [tensorflow (GPflow) implementation of Bayesian GPLVMs](https://gpflow.github.io/GPflow/2.4.0/notebooks/basics/GPLVM.html)
+
+- Useful videos / slides:
+  - [Neil Lawrence: Bayesian GPLVMs and Deep GPs Video](https://www.youtube.com/watch?v=fEWI6XDUGTo)
+  - [Neil Lawrence: GPLVMs Slides](https://gpss.cc/gprs15b/assets/session3.pdf)
+
+::: {style="text-align: center; font-size: 1em"}
+My email: `r.sedgwick19@imperial.ic.ac.uk`
+:::
+
+
+<!--
+## Training the Bayesian GPLVM 
+
+::: {.fragment}
+- However the marginal like is now intractable as $H$ appears non-linearly in inverse of $K(H,H) + \sigma^2\mathbf{I}$.
+:::
+
+::: {.fragment}
+- To solve this problem we are going to use variational inference.
+:::
+
+## Variational Inference
+
+<!-- ::: {.fragment}
+
+- What if we put a prior on $H$?
+    $$\mathbf{h}_n \sim \mathcal{N}(\mathbf{\mu}_{h_n}, \Sigma_{h_n}).$$
+
+::: -->
+
+<!--
+:::  {.fragment}
+:::: {.columns}
+::: {.column width="45%"}
+- What if we put a prior on $H$? 
+    $$
+    p(\mathbf{y}_n |\mathbf{h}_n, \sigma^2) = \mathcal{N}(\mathbf{y}_n | \mathbf{0}, \mathbf{H}\mathbf{H}^T + \sigma^2\mathbf{I}).
+    $$
+:::
+::: {.column width="45%"}
+<img src="images/PCA_of.png" alt="drawing" width="500"/> 
+:::
+
+- The marginal likelihood becomes:
+    $$p(Y|H, \mathbf{\theta}, \sigma_n) = \int p(Y|F, H, \mathbf{\theta}, \sigma_n) p(F|H, \mathbf{\theta}) p(H) dF dH.$$
+- However this is intractable! as $H$ appears non-linearly in inverse of $K(H,H) + \sigma^2\mathbf{I}$
+- To solve this problem we are going to use variational inference.
+
+## Bayesian GPLVM VI 
+
+- Our marginal likelihood is intractable:
+$$p(Y|H, \mathbf{\theta}, \sigma_n) = \int p(Y|F, H, \mathbf{\theta}, \sigma_n) p(F|H, \mathbf{\theta}) p(H) dF dH.$$
+- To address this we will use a variational distribution over the latent variables: 
+$$q(H) = \prod^N_{n=1} \mathcal{N}(\mathbf{h_n}| M_n, S_n), $$
+where $M_n$ and $S_n$ are the mean a variance of the variational distribution $q(\mathbf{h}_n)$.
+
+## Bayesian GPLVM VI 
+
+- A lower bound can then be expressed via Jensen's inequality ($\mathbb{E}[g(x)] \geq g(\mathbb{E}[x])$) as follows:
+$$\begin{align*}
+    \log p(Y|H) &= \log \int p(Y|H) p(H) dH \\
+     & = \log \int p(Y|H) p(H) \frac{q(H)}{q(H)} dH \\
+     & \geq \int q(H) \log \frac{p(Y|H) p(H)}{q(H)} dH.
+\end{align*}$$
+This can be rearranged to: 
+$$
+    \log p(Y|H) \geq \underbrace{\int q(H) \log p(Y|H) dH}_{\text{still intractable!}} - \underbrace{\int q(H) \log \frac{ q(H)}{p(H)} dH}_{\text{KL divergence}}.
+    \label{eq:BGPLVM_LB}
+$$
+
+## Bayesian GPLVM VI 
+
+- How do we make $\int q(H) \log p(Y|H) dH$ tractable?
+- Add $N_U$ inducing variables $U = \in \mathbb{R}^{N_U \times D}$ evaluated at inducing point locations $Z = [\mathbf{z}_1, ..., \mathbf{z}_{N_U}]^T$ where $Z \in \mathbb{R}^{N_U \times Q}$
+- This gives a joint Gaussian process prior between $F$ and $U$ as:
+$$ p(F, U | H, Z) = p(F|U, H, Z) p(U |Z),
+$$
+- The joint distribution is then:
+$$p(Y, F, U | H, Z) = p(Y| F)p(F|U, H, Z) p(U |Z). $$
+- Conditioning on $U$ decouples $F$ from each other meaning: 
+ $$p(Y|H) = \prod_{n=1}^N p(\mathbf{y_n}|H).$$
+
+## Bayesian GPLVM VI 
+
+Include illistration of inducing variables / points
+
+- How do we make $\int q(H) \log p(Y|H) dH$ tractable?
+- Add $N_U$ inducing variables $U = \in \mathbb{R}^{N_U \times D}$ evaluated at inducing point locations $Z = [\mathbf{z}_1, ..., \mathbf{z}_{N_U}]^T$ where $Z \in \mathbb{R}^{N_U \times Q}$
+- This gives a joint Gaussian process prior between $F$ and $U$ as:
+$$ p(F, U | H, Z) = p(F|U, H, Z) p(U |Z),$$
+- The joint distribution is then:
+$$ p(Y, F, U | H, Z) = p(Y| F)p(F|U, H, Z) p(U |Z). $$
+
+## Bayesian GPLVM VI 
+
+- Conditioning on $U$ decouples $F$ from each other meaning: 
+ $$p(Y|H) = \prod_{n=1}^N p(\mathbf{y_n}|H).$$
+- This means $p(Y)$ can be found by marginalising out $F$ and $U$ for any value of $Z$.
+
+## Bayesian GPLVM VI 
+
+- By introducing a second variational distribution:
+ $$q(F, U) = p(F| U, H) q(U),$$
+ we can get a tractable lower bound:
+ $$
+ \begin{align*}
+    \log p(Y|H) &= \log  \int p(Y|F) p(F |U, H) p(U) dH \\
+    &= \log \int p(Y|F) p(F |U, H) p(U) \frac{p(F |U, H) q(U)}{p(F |U, H) q(U)} dH \\
+    &= \log \mathbb{E} \left[\frac{p(Y| F) p(F |U, H) p(U)}{p(F |U, H) q(U)}\right]_{p(F |U, H) q(U)} \\
+    &\geq \int p(F |U, H) q(U) \log \left( \frac{p(Y|F) p(U)}{q(U)}  \right) ~ dF dU \\
+    &= \int q(U) \left( \int p(F| U, H) \log p(Y|F) ~d(F) + \log\frac{p(U)}{q(U)} \right) ~ dU, 
+  \end{align*}
+  $$
+
+## Bayesian GPLVM VI 
+
+- Putting this back into our lower bound we get: 
+$$\begin{multline*}
+    \log p(Y|H) \geq  \int q(H) \Biggl[ \int q(U) \Biggl( \int p(F| U, H) \log p(Y|F) ~d(F) \\  + \log\frac{p(U}{q(U)} \Biggr) ~ d(U)    - \log \frac{ q(H)}{p(H)} \Biggr] dH.
+\end{multline*}
+$$
+
+- This is tractable! We therefore can maximise this lower bound instead of maximising the marginal likelihood. 
+ -->
+
+
+
+<!-- 
+## Assumptions for Causal Discovery
+
+
+
+::: {.notes}
+- Main question of interest: How far can we get with observational data alone
+
+- Let's make an assumption on the model that generated the data and fit that model
+
+- Only one causal direction really FITS the data
+
+- Basic strategy: data + assumptions
+:::
+
+::: {.fragment}
+::: {style="text-align: center; color: #107895; font-size: 1.2em; font-weight: 900em"}
+How far can we get with observational data alone?
+:::
+:::
+
+::: {.fragment .fade-in-then-out}
+::: {style="text-align: center"}
+
+Assumptions: $E = f(C) + N$ (ANM)
+
+::: {layout-ncol=2}
+![$X \to Y$](images/gp_plot_causal:True.png)
+
+![$Y \to X$](images/gp_plot_causal:False.png)
+
+
+
+:::
+:::
+:::
+
+::: {.fragment}
+::: {style="text-align: center; margin-top: -10em"}
+Observational data + assumptions $\to$ Causal structure
+:::
+:::
+
+
+
+## Need for flexible assumptions
+
+
+
+::: {.notes}
+- A problem with assumptions are that they can be restrictive
+
+- What assumption can we make for data like this?
+
+- Let's try and previous ANM
+
+- Can we really trust this answer?
+:::
+
+Assumptions that allow for identifiability can be restrictive
+
+::: {.fragment .fade-in-then-out}
+:::{style="text-align: center"}
+
+:::{.absolute  top=150 left=400}
+Assumption: ?
+:::
+
+![](images/gplvm_data_plot.png){.absolute left=150 top=250 height="60%" width=65%}
+:::
+:::
+
+::: {.fragment}
+:::{style="text-align: center"}
+
+Assumption: $E = f(C) + N$ (ANM)
+
+::: {layout-ncol=2}
+![$X \to Y$](images/gp_fit_on_gplvm_causal.png)
+
+![$Y \to X$](images/gp_fit_on_gplvm_anticausal.png)
+:::
+:::
+:::
+
+## Need for flexible assumptions
+
+::: {.notes}
+- This is the main question we will address today
+:::
+
+
+::: {.absolute top=200}
+::: {style="text-align: center; color: #107895; font-size: 1.4em; font-weight: 900em"}
+Can we do causal discovery with more flexible assumptions?
+:::
+:::
+
+## Back to basics: Factorisation and interventions
+
+Causal model $X \to Y$ specifies a joint distribution $\Pi(X, Y)$
+
+
+::: {.fragment}
+Causal model defines a data generation process:
+$$
+\begin{align}
+X :=& \  f_x(N_x) \\
+Y :=& \ f_y(X, N_y)
+\end{align}
+$$
+:::
+
+::: {.fragment}
+- $\Pi(X, Y) = \Pi(X) \Pi(Y|X)$: Causal factorisation
+- $\Pi(X, Y) = \Pi(Y) \Pi(X|Y)$: Anticausal factorisation
+:::
+
+::: {.fragment}
+- Intervention on $X$: Changing $f_x$ or $N_x$
+- Intervention on $Y$: Changing $f_y$ or $N_y$
+:::
+
+
+
+
+
+
+## Back to basics: ICM
+
+$X \to Y$:
+$$
+\begin{align}
+X :=& \  f_x(N_x) \\
+Y :=& \ f_y(X, N_y)
+\end{align}
+$$
+
+
+::: {.fragment}
+
+
+::: {style="margin-top: -1em"}
+- Changing $X$ to $\Pi'(X)$ leaves $\Pi(Y|X)$ unchanged
+- Changing $X$ to $\Pi'(X)$ [does not]{style="color:#42affa"} leave $\Pi(Y) = \sum_X \Pi(X) \Pi(Y|X)$ unchanged
+:::
+
+:::
+
+::: {.fragment}
+- The [causal factorisation]{style="color:#42affa"} is special.
+  - Causal mechanisms are ["independent"]{style="color:#42affa"} while anticausal may not be
+-  Also known as the [Independent causal mechanism]{style="color:#42affa"}  (ICM) assumption.
+:::
+
+
+
+::: {.fragment}
+E.g. Altitude $\to$ Temperature: changing ensemble of altitudes $\Pi(\text{Altitude})$ will not change $\Pi(\text{Temperature | Altitude})$.
+
+:::
+
+## Parametrising Causal models
+
+We want to make sure our parametrisation follows ICM
+
+$$
+\begin{gather}
+    p(\bfx, \bfy|\phi, \mathbf{\theta}, \xcausey) = p(\bfx|\phi, \xcausey)p(\bfy|\bfx,\mathbf{\theta}, \xcausey)\,, \\
+    p(\bfx, \bfy|\phi, \mathbf{\theta}, \ycausex) = p(\bfy|\phi, \ycausex)p(\bfx|\bfy,\mathbf{\theta}, \ycausex)\,,
+\end{gather}
+$$
+
+::: {.fragment}
+
+::: {.absolute height="90" width="510" top=170 left=440}
+::: {.box}
+:::
+:::
+
+::: {.absolute top=110 left=560}
+::: {style="color: #D24000; font-size: 0.8em; font-style:italic"}
+Causal factorisation
+:::
+:::
+
+:::
+
+::: {.fragment}
+- Marginals are chosen from $\setmarginals$ and conditionals are chosen from $\setconditionals$
+
+::: {style="margin-top: -1em"}
+$$
+\begin{align}
+\setmarginals = \{p(\cdot| \phi) \suchthat \phi \in \Phi \} && \setconditionals  = \{p(\cdot| \cdot, \mathbf{\theta}) \suchthat \mathbf{\theta} \in \Theta  \}
+\end{align}
+$$
+:::
+
+::: {.fragment}
+- Allows for parts of the [**correct**]{style="color: #003E74"} model to be reused under interventions
+:::
+
+:::
+
+
+
+
+
+## Why doesn't fitting models work?
+
+:::{.fragment}
+- Given data, we can find $\phi, \mathbf{\theta}$ by maximising the likelihood
+:::
+
+:::{.fragment}
+- For [flexible models]{style="color:#42affa"}, we need $\setmarginals$ and $\setconditionals$ to be large enough so that we can predict well on any given dataset
+:::
+
+:::{.fragment}
+- Can we distinguish $\xcausey$ and $\ycausex$?
+:::
+
+
+:::{.fragment}
+:::{style="color:#42affa; text-align: center"}
+**No**
+:::
+:::
+
+::: {.fragment}
+::: {style="font-size: 0.8em; text-align: center"}
+$$
+    \max_{\mathbf{\theta}, \phi}  p(\bfx|\phi, \xcausey)p(\bfy|\bfx,\mathbf{\theta}, \xcausey) = \max_{\mathbf{\theta}, \phi}  p(\bfy|\phi, \ycausex)p(\bfx|\bfy,\mathbf{\theta}, \ycausex)
+$$
+:::
+
+::: {style="font-size: 0.8em; text-align: center"}
+$$
+    P(X)P(Y|X) = P(Y)P(X|Y)
+$$
+:::
+
+
+:::
+
+
+
+## Why doesn't fitting models work?
+
+<br>
+
+::: {style="font-size: 0.8em; text-align: center"}
+$$
+   \underbrace{\max_{\mathbf{\theta}, \phi}  p(\bfx|\phi, \xcausey)p(\bfy|\bfx,\mathbf{\theta}, \xcausey)}_{\in \setmarginals \times \setconditionals} =  \underbrace{\max_{\mathbf{\theta}, \phi} p(\bfy|\phi, \ycausex)p(\bfx|\bfy,\mathbf{\theta}, \ycausex)}_{\in \setmarginals \times \setconditionals }
+$$
+:::
+
+::: {.absolute left=200 height="500" width="700"}
+```{r, engine = 'tikz'}
+#| echo: false
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (50,110) .. controls (107,115) and (175,55) .. (290,100) .. controls (405,145) and (596.71,109.94) .. (600,110) ;
+%Curve Lines [id:da7678987550251666]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]  [dash pattern={on 6.75pt off 4.5pt}]  (50,110) .. controls (107,115) and (175,55) .. (290,100) .. controls (405,145) and (596.71,109.94) .. (600,110) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\Huge] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M}_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M}_{Y\rightarrow X})$};
+\end{tikzpicture}
+```
+:::
+
+
+
+## Why do restrictions work?
+
+
+::: {.fragment}
+:::{style="text-align: center"}
+
+$\setconditionals =$ Additive non-linear model (ANM)
+
+<br>
+
+::: {.absolute left=100 top=128}
+$p(\bfy|\bfx,\mathbf{\theta}, \xcausey) \in \setconditionals$
+:::
+
+
+::: {.absolute left=620 top=128}
+$p(\bfx|\bfy,\mathbf{\theta}, \ycausex) \notin \setconditionals$
+:::
+
+
+
+::: {.absolute top=228}
+::: {layout-ncol=2}
+![](images/gp_plot_causal:True.png)
+
+![](images/gp_plot_causal:False.png)
+:::
+:::
+
+::: {.absolute top=550 left=100}
+::: {style="font-size: 0.8em; text-align: center"}
+$$
+    \underbrace{\max_{\mathbf{\theta}, \phi}  p(\bfx|\phi, \xcausey)p(\bfy|\bfx,\mathbf{\theta}, \xcausey)}_{\in \setmarginals \times \setconditionals} > \underbrace{\max_{\mathbf{\theta}, \phi} p(\bfy|\phi, \ycausex)p(\bfx|\bfy,\mathbf{\theta}, \ycausex)}_{\notin \setmarginals \times \setconditionals}
+$$
+:::
+:::
+
+:::
+:::
+
+
+## Why do restrictions work?
+
+::: {.fragment}
+::: {.absolute left=200 height="500" width="700"}
+::: {style="text-align: center"}
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (100,110) .. controls (134,112) and (136,79) .. (180,80) .. controls (224,81) and (201,104) .. (250,110) ;
+%Straight Lines [id:da43093054308218504]
+\draw    (100,80) -- (100,180) ;
+%Straight Lines [id:da43535242732295365]
+\draw    (250,80) -- (250,180) ;
+%Straight Lines [id:da45962598629903195]
+\draw    (400,80) -- (400,180) ;
+%Straight Lines [id:da42195523828352655]
+\draw    (550,80) -- (550,180) ;
+%Curve Lines [id:da3254916787493394]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (400,110) .. controls (434,112) and (436,79) .. (480,80) .. controls (524,81) and (501,104) .. (550,110) ;
+%Up Arrow [id:dp9268792588428787]
+\draw   (160,196) -- (195,180) -- (230,196) -- (212.5,196) -- (212.5,220) -- (177.5,220) -- (177.5,196) -- cycle ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\LARGE] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M} '_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M} '_{Y\rightarrow X})$};
+
+
+
+
+
+
+
+
+\end{tikzpicture}
+
+```
+
+::: {.absolute top=280 left=-100}
+::: {style="font-size: 0.8em; text-align: center"}
+$$
+    \underbrace{\max_{\mathbf{\theta}, \phi}  p(\bfx|\phi, \xcausey)p(\bfy|\bfx,\mathbf{\theta}, \xcausey)}_{\in \setmarginals \times \setconditionals} > \underbrace{\max_{\mathbf{\theta}, \phi} p(\bfy|\phi, \ycausex)p(\bfx|\bfy,\mathbf{\theta}, \ycausex)}_{\notin \setmarginals \times \setconditionals}
+$$
+:::
+:::
+
+
+:::
+:::
+:::
+
+::: {.absolute top=480}
+::: {.fragment}
+- Restricting the class of models allows for maximum likelihood to identify causal direction
+:::
+:::
+
+
+::: {.absolute top=600}
+::: {.fragment}
+- This also restricts the datasets that you can model!
+
+::: {.absolute top=-450 left=530}
+::: {style="color: #D24000; font-size: 60px"}
+**?**
+:::
+:::
+
+:::
+:::
+
+## Why do restrictions work?
+
+::: {.fragment}
+:::{style="text-align: center"}
+
+
+
+$\setconditionals =$ Additive non-linear model (ANM)
+
+<br>
+
+::: {.absolute left=100 top=158}
+$p(\bfy|\bfx,\mathbf{\theta}, \xcausey) \notin \setconditionals$
+:::
+
+
+::: {.absolute left=620 top=158}
+$p(\bfx|\bfy,\mathbf{\theta}, \ycausex) \notin \setconditionals$
+:::
+
+::: {.absolute top=258}
+::: {layout-ncol=2}
+![$X \to Y$](images/gp_fit_on_gplvm_causal.png)
+
+![$Y \to X$](images/gp_fit_on_gplvm_anticausal.png)
+:::
+:::
+
+:::
+:::
+
+## Causal Discovery: Complexity
+
+
+:::{.fragment}
+Another line of work has relied on the observation that the causal factorisation is "simple"
+
+- E.g. Only causal factorisation can fit in "simple" model
+:::
+
+:::{.fragment}
+Different ways of measuring simplicity
+
+- Kolmogorov complexity
+- Minimum description length
+:::
+:::{.fragment}
+
+Bayesian formulation has automatic [complexity control]{style="color:#42affa"}
+
+- Relies on similar assumptions
+- Has the same lack of guarantees
+:::
+
+## Bayesian Model selection
+
+[**Bayes**:]{style="color:#003E74"} Find the posterior of each causal model
+
+::: {.fragment}
+$$
+\begin{align}
+    p(\xcausey|\data) = \frac{p(\data|\xcausey)p(\xcausey)}{p(\data|\xcausey)p(\xcausey) + p(\data|\ycausex)p(\ycausex)} \,
+\end{align}
+$$
+:::
+
+
+::: {.fragment}
+We can summarise
+
+$$
+\begin{align}
+    \log \frac{p(\xcausey|\data)}{p(\ycausex|\data)} =
+    \log \frac{p(\data|\xcausey)p(\xcausey)}{p(\data|\ycausex)p(\ycausex)} \,
+\end{align}
+$$
+:::
+
+::: {.fragment}
+Unsure of causal direction: $p(\xcausey) = p(\ycausex) = 0.5$
+:::
+
+::: {.fragment}
+Important terms are the [**Marginal likelihoods**]{style="color:#D24000"}:
+$\log \frac{p(\data| \xcausey)}{p(\data| \ycausex)}$
+
+
+:::
+
+
+## Marginal Likelihoods
+
+Marginal likelihoods can be calculated:
+
+::: {style="font-size: 30px"}
+$$
+\begin{align}
+    p(\bfx, \bfy|\xcausey) = \iint p(\bfx | \phi, \xcausey) p(\bfy|\bfx, \mathbf{\theta}, \xcausey) p(\phi,\mathbf{\theta}| \xcausey) \calcd\phi \calcd\mathbf{\theta} \\
+    p(\bfx, \bfy|\ycausex) = \iint p(\bfy | \phi, \ycausex) p(\bfx|\bfy, \mathbf{\theta}, \ycausex) p(\phi, \mathbf{\theta}| \ycausex)\calcd\phi \calcd \mathbf{\theta}
+\end{align}
+$$
+:::
+
+::: {.fragment}
+- We must specify priors $p(\phi, \mathbf{\theta}| \cdot)$
+:::
+::: {.fragment}
+- ICM $\implies$ $\phi \perp \!\!\! \perp \mathbf{\theta}$
+:::
+
+
+::: {.fragment}
+- Priors represent our [assumptions]{style="color:#42affa"}
+  - Can place zero mass in areas to mimic restricting $\setmarginals, \setconditionals$
+:::
+
+::: {.fragment}
+- Real example of choice of prior later
+:::
+
+## Can BMS distinguish causal models?
+
+For both causal models to have the same score for all datasets
+
+
+$$
+p(\bfx, \bfy|\xcausey) = p(\bfx, \bfy|\ycausex) \ \forall \bfx, \bfy
+$$
+
+... a model must factorise according to [**both**]{style="color:#003E74"} graphical models
+
+::: {style="text-align: center"}
+::: {layout-ncol=2}
+
+```{r, engine = 'tikz'}
+#| echo: false
+\usetikzlibrary{bayesnet}
+\usetikzlibrary{arrows,automata}
+
+  \tikz{
+ \node[obs] (x) {$X_i$};%
+ \node[obs,right=of x,xshift=0.25cm] (y) {$Y_i$};
+ \node[latent,left=of x,xshift=-0.15cm] (phi) {$\phi$};
+ \node[latent,right=of y,xshift=0.15cm] (theta) {$\mathbf{\theta}$};
+ \plate[inner sep=0.3cm, xshift=0cm, yshift=0.12cm] {plate1} {(x) (y)} {$i = 1,\ldots, n$};
+ \edge {x} {y};
+ \edge {phi} {x};
+ \edge {theta} {y} }
+
+```
+
+
+```{r, engine = 'tikz'}
+#| echo: false
+\usetikzlibrary{bayesnet}
+\usetikzlibrary{arrows,automata}
+  \tikz{
+% nodes
+ \node[obs] (x) {$X_i$};%
+ \node[obs,right=of x,xshift=0.25cm] (y) {$Y_i$};
+ \node[latent,left=of x,xshift=-0.15cm] (theta) {$\mathbf{\theta}$};
+ \node[latent,right=of y,xshift=0.15cm] (phi) {$\phi$};
+% plate
+ \plate[inner sep=0.3cm, xshift=0cm, yshift=0.12cm] {plate1} {(x) (y)} {$i = 1,\ldots, n$};
+% edges
+ \edge {y} {x};
+ \edge {phi} {y};
+ \edge {theta} {x}  }
+
+
+
+```
+
+
+
+
+:::
+:::
+
+::: {.absolute top=500}
+::: {.fragment .fade-in-then-out}
+::: {style="font-size: 26px"}
+$$
+p(\bfx | \phi, \xcausey) p(\bfy|\bfx, \mathbf{\theta}, \xcausey) p(\phi) p(\mathbf{\theta})
+$$
+:::
+:::
+:::
+
+::: {.absolute top=500}
+::: {.fragment .fade-in-then-out}
+::: {style="font-size: 26px"}
+$$
+p(\bfx | \phi, \xcausey) p(\bfy|\bfx, \mathbf{\theta}, \xcausey) p(\phi) p(\mathbf{\theta}) = p(\bfy | \phi, \mathbf{\theta}, \xcausey) p(\bfx|\bfy, \phi, \mathbf{\theta}, \xcausey) p(\phi) p(\mathbf{\theta})
+$$
+:::
+:::
+:::
+
+::: {.absolute top=500}
+::: {.fragment .fade-in}
+::: {style="font-size: 26px"}
+$$
+p(\bfx | \phi, \xcausey) p(\bfy|\bfx, \mathbf{\theta}, \xcausey) p(\phi) p(\mathbf{\theta}) = p(\bfy | \phi,  \xcausey) p(\bfx|\bfy, \mathbf{\theta}, \xcausey) p(\phi) p(\mathbf{\theta})
+$$
+:::
+:::
+:::
+
+::: {.absolute top=570}
+::: {.fragment}
+- E.g. If $\setmarginals, \setconditionals$ are Normalised linear Gaussian
+:::
+:::
+
+## Can BMS distinguish causal models?
+
+
+
+::: {style="text-align: center"}
+ If $\setconditionals, \setmarginals$ are  [**restricted**]{style="color: #003E74"} such that maximum likelihood can distinguish, can BMS?
+:::
+
+::: {.fragment}
+:::{style="text-align: center; color: #42affa"}
+**Yes**
+:::
+:::
+
+
+::: {.fragment}
+::: {style="text-align: center"}
+::: {layout-ncol=2}
+
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (100,110) .. controls (134,112) and (136,79) .. (180,80) .. controls (224,81) and (201,104) .. (250,110) ;
+%Straight Lines [id:da43093054308218504]
+\draw    (100,80) -- (100,180) ;
+%Straight Lines [id:da43535242732295365]
+\draw    (250,80) -- (250,180) ;
+%Straight Lines [id:da45962598629903195]
+\draw    (400,80) -- (400,180) ;
+%Straight Lines [id:da42195523828352655]
+\draw    (550,80) -- (550,180) ;
+%Curve Lines [id:da3254916787493394]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (400,110) .. controls (434,112) and (436,79) .. (480,80) .. controls (524,81) and (501,104) .. (550,110) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\Huge] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M} '_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M} '_{Y\rightarrow X})$};
+
+
+\end{tikzpicture}
+
+```
+
+
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (100,180) .. controls (134,182) and (136,79) .. (180,80) .. controls (224,81) and (201,174) .. (250,180) ;
+%Curve Lines [id:da3254916787493394]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (400,180) .. controls (434,182) and (436,79) .. (480,80) .. controls (524,81) and (501,174) .. (550,180) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\LARGE] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \ p(\mathcal{D} |\mathcal{M} '_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \ p(\mathcal{D} |\mathcal{M} '_{Y\rightarrow X})$};
+
+
+\end{tikzpicture}
+
+
+```
+
+
+:::
+:::
+:::
+
+
+::: {.fragment}
+
+- Retains identifiability guarantees for models like ANM
+
+:::
+
+
+::: aside
+Full theorems and assumptions needed in the paper
+:::
+
+## Can BMS distinguish causal models?
+
+
+::: aside
+Full theorems and assumptions needed in the paper
+:::
+
+::: {style="text-align: center"}
+ If $\setconditionals, \setmarginals$ are [**flexible**]{style="color: #003E74"} such that maximum likelihood [**cannot**]{style="color: #D24000"} distinguish, can BMS?
+:::
+
+::: {.fragment}
+:::{style="text-align: center; color: #42affa"}
+**Yes!**
+:::
+:::
+
+::: {.fragment}
+::: {style="text-align: center"}
+::: {layout-ncol=2}
+
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (50,110) .. controls (107,115) and (175,55) .. (290,100) .. controls (405,145) and (596.71,109.94) .. (600,110) ;
+%Curve Lines [id:da7678987550251666]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]  [dash pattern={on 6.75pt off 4.5pt}]  (50,110) .. controls (107,115) and (175,55) .. (290,100) .. controls (405,145) and (596.71,109.94) .. (600,110) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\Huge] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M}_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \max_{\mathbf{\theta} ,\ \phi } \ p(\mathcal{D} |\mathbf{\theta} ,\phi ,\mathcal{M}_{Y\rightarrow X})$};
+\end{tikzpicture}
+
+
+
+```
+
+
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (50,180) .. controls (73,144) and (167,24) .. (220,70) .. controls (273,116) and (324,179) .. (400,180) ;
+%Curve Lines [id:da7930826123993004]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (600,180) .. controls (579,149) and (482,38) .. (430,70) .. controls (378,102) and (317,183) .. (250,180) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\LARGE] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (101,12) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {P($\displaystyle \mathcal{D} |\mathcal{M}_{X\ \rightarrow Y})$};
+% Text Node
+\draw (371,12) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {P($\displaystyle \mathcal{D} |\mathcal{M}_{Y\ \rightarrow X})$};
+
+
+\end{tikzpicture}
+
+
+
+```
+
+
+:::
+:::
+:::
+
+::: {.fragment}
+
+::: {.absolute top=170 left=700}
+::: {style="color: #D24000; font-size: 20px"}
+$$
+\sum_{\data} p(\data| \cdot) = 1
+$$
+:::
+:::
+
+::: {.absolute top=170 left=150}
+::: {style="color: #D24000; font-size: 20px"}
+$$
+\sum_{\data} \max_{\mathbf{\theta}, \phi} p(\data| \mathbf{\theta}, \phi, \cdot) < \infty
+$$
+:::
+:::
+
+:::
+
+::: {.fragment}
+
+- BMS has an opinion for [**flexible**]{style="color: #003E74"} $\setmarginals, \setconditionals$ when maximum likelihood is indifferent
+
+:::
+
+
+## Does BMS find the correct causal direction?
+
+Previous result said nothing about finding the  [**correct**]{style="color: #003E74"} causal model.
+
+::: {.fragment}
+
+- Assume datasets are sampled from $\Pi(X,Y)$
+- Assume one of our models is correct (assumptions match data generation)
+  - E.g. $p(X, Y| \xcausey) = \Pi(X,Y)$
+
+
+:::
+
+
+::: {.fragment}
+Decision rule:
+
+::: {style="font-size: 30px"}
+$$
+\begin{align}
+\mathcal{M}^* = \begin{cases} \xcausey \text{ if } p(\data| \xcausey) > p(\data| \ycausex) \\ \ycausex \text{ if } p(\data| \xcausey) < p(\data| \ycausex) \end{cases}
+\end{align}
+$$
+:::
+:::
+
+
+
+## Does BMS find the correct causal direction?
+
+
+
+
+We focus on the probability of error
+
+
+::: {style="font-size: 24px"}
+$$
+\begin{align}
+    P(E| \xcausey) = \int_{\mathcal{R}_Y} p(\data| \xcausey ) \calcd \data \,, && \mathcal{R}_Y = \{\data \suchthat p(\data|\ycausex) > p(\data|\xcausey)\} \,.
+\end{align}
+$$
+:::
+- Can be calculated numerically for our choice of model
+
+
+
+
+Probability of error:
+
+::: {style="font-size: 30px"}
+$$
+\begin{align}
+    P(E) = \frac{1}{2} (1-  \underbrace{\text{TV}[P_{\data}(\cdot| \xcausey ),  P_{\data}(\cdot| \ycausex )])}_{\text{Total variation distance between dataset densities}},
+\end{align}
+$$
+:::
+
+::: {.fragment .fade-in-then-out}
+
+::: {.absolute top=600}
+- Restrictions imply $\text{TV} = 1 \implies P(E) = 0$
+  - Retains notion of identifiability
+:::
+
+
+::: {.absolute top=550 height="200" width="300" left=800}
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (100,180) .. controls (134,182) and (136,79) .. (180,80) .. controls (224,81) and (201,174) .. (250,180) ;
+%Curve Lines [id:da3254916787493394]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (400,180) .. controls (434,182) and (436,79) .. (480,80) .. controls (524,81) and (501,174) .. (550,180) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\LARGE] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (51,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {$\displaystyle \ p(\mathcal{D} |\mathcal{M} '_{X\rightarrow Y})$};
+% Text Node
+\draw (351,22) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {$\displaystyle \ p(\mathcal{D} |\mathcal{M} '_{Y\rightarrow X})$};
+
+
+\end{tikzpicture}
+
+
+```
+:::
+:::
+
+::: {.fragment .fade-in}
+
+::: {.absolute top=600}
+- Flexibility $\implies$ may be non-zero probability of error
+:::
+
+::: {.absolute top=550 height="200" width="300" left=800}
+```{r, engine = 'tikz'}
+#| echo: false
+
+\tikzset{every picture/.style={line width=2.5pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7493139746626474]
+\draw    (50,180) -- (272,179.61) -- (600,180) ;
+%Curve Lines [id:da8407783790065078]
+\draw [color={rgb, 255:red, 208; green, 2; blue, 27 }  ,draw opacity=1 ][line width=2.25]    (50,180) .. controls (73,144) and (167,24) .. (220,70) .. controls (273,116) and (324,179) .. (400,180) ;
+%Curve Lines [id:da7930826123993004]
+\draw [color={rgb, 255:red, 126; green, 211; blue, 33 }  ,draw opacity=1 ][line width=2.25]    (600,180) .. controls (579,149) and (482,38) .. (430,70) .. controls (378,102) and (317,183) .. (250,180) ;
+
+% Text Node
+\draw (591,183) node [anchor=north west][inner sep=0.75pt]  [font=\LARGE] [align=left] {$\displaystyle \mathcal{D}$};
+% Text Node
+\draw (101,12) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 208; green, 2; blue, 27 }  ,opacity=1 ] [align=left] {P($\displaystyle \mathcal{D} |\mathcal{M}_{X\ \rightarrow Y})$};
+% Text Node
+\draw (371,12) node [anchor=north west][inner sep=0.75pt]  [font=\huge,color={rgb, 255:red, 126; green, 211; blue, 33 }  ,opacity=1 ] [align=left] {P($\displaystyle \mathcal{D} |\mathcal{M}_{Y\ \rightarrow X})$};
+
+
+\end{tikzpicture}
+
+
+
+```
+:::
+
+:::
+
+
+## Does BMS find the correct causal direction? (Misspecification)
+
+What if we don't know the true data generating process (true data generating prior) ?
+
+$$
+\begin{align}
+|\underbrace{\Pi(\text{Error})}_{\text{True probability of error}} - \underbrace{P(\text{Error})}_{\text{Model probability of error}}| \leq
+\text{TV}[  \Pi_{\mathcal{D}}(\cdot| X \to Y), P_{\mathcal{D}}(\cdot| \mathcal{M}_{X \to Y})]
+\end{align}
+$$
+
+::: {.fragment}
+- Correct priors are hard to verify
+:::
+
+
+::: {.fragment}
+- Above shows that it is not necessary to exactly get the priors right
+:::
+
+## Method
+
+We want a flexible model that has good predictive ability regardless of the dataset given
+
+::: {.fragment}
+- $\setmarginals$: GPLVM, $\setconditionals$: Conditional GPLVM
+:::
+
+::: {.fragment}
+$$
+\begin{align}
+p(y_i| x_i, f_y, \xcausey) &= \int p(y_i| x_i, f_y, w_i \xcausey) p(w_i) dw_i \\
+p(x_i| f_x, \xcausey) &= \int p(x_i| f_x, w_i \xcausey) p(w_i) dw_i
+\end{align}
+$$
+
+- Infinite mixture of Guassians can model:
+  - Non -Gaussian likelihoods
+  - Heteroscedastic noise
+:::
+
+## Flexibility of GPLVM
+
+::: {.absolute height="300" width="800" left=100}
+::: {style="text-align: center"}
+::: {layout-ncol=2}
+![$X \to Y$](images/gplvm_plot_nofullcov_causal:True.png)
+
+![$Y \to X$](images/gplvm_plot_nofullcov_causal:False.png)
+
+:::
+:::
+:::
+
+
+::: {.fragment}
+::: {.absolute height="300" width="800" top=375 left=100}
+::: {style="text-align: center"}
+::: {layout-ncol=2}
+![$X \to Y$](images/gplv_data_gplvm_fit_no_full_cov_causal:True.png)
+
+![$Y \to X$](images/gplv_data_gplvm_fit_no_full_cov_causal:False.png)
+
+:::
+:::
+:::
+:::
+
+## Results
+
+- How does the flexible model work with datasets that are generated from identifiable models?
+- How does it compare against the identifiable models themselves?
+
+::: {.fragment}
+
+::: {style="text-align: center"}
+
+Numbers are ROC AUC (higher is better)
+
+| Methods | ANM |
+ | -------| ----|
+| Gaussian Process | 100.0 |
+ |  GPLVM | 100.0 |
+
+:::
+
+- Flexibility does not necessarily hurt performance for idenitifiable models
+:::
+
+## Results
+
+- Empirical evaluation on varying data generating processes
+
+| Methods |   Cha | Multi | Net | Gauss | Tueb |
+| :----:| :----:| :----:| :----:| :---:| :----:|
+ | LiNGAM  | 57.8 | 62.3 | 3.3 | 72.2 | 31.1 |
+ | ANM   | 43.7 |25.5 | 87.8 | 90.7 | 63.9 |
+ | PNL  | [78.6]{style="text-decoration: underline;"} | 51.7 | 75.6 | 84.7 | 73.8 |
+  | IGCI  | 55.6 | 77.8 | 57.4 | 16.0 | 63.1  |
+  |SLOPPY  | 60.1 | 95.7 | 79.3 | 71.4 | 65.3 |
+  | RECI  | 59.0 | 94.7 | 66.0 | 71.0  | 70.5 |
+ | CGNN   | 76.2 | 94.7 | 86.3 | 89.3 | [76.6]{style="text-decoration: underline;"} |
+ | GPI   | 71.5 | 73.8 | 88.1 | 90.2 | 70.6  |
+  |CDCI | 72.2 | [96.0]{style="text-decoration: underline;"} |  [94.3]{style="text-decoration: underline;"} | [**91.8**]{style="text-decoration: underline;"} | - |
+  | **GPLVM** | **81.9** | **97.7** | **98.9** | 89.3 | **78.3**|
+
+
+::: {.fragment .fade-in-then-out}
+
+::: {.absolute height="290" width="130" top=200 left=90}
+::: {.box}
+:::
+:::
+
+::: {.absolute top=250 left=-80}
+[Strong]{style="color: #D24000"}
+<br>
+[assumptions]{style="color: #D24000"}
+:::
+
+:::
+
+
+::: {.fragment .fade-in-then-out}
+
+::: {.absolute height="150" width="130" top=500 left=90}
+::: {.box}
+:::
+:::
+
+::: {.absolute top=550 left=-80}
+[Complexity]{style="color: #D24000"}
+<br>
+[control]{style="color: #D24000"}
+:::
+
+:::
+
+
+::: {.fragment .fade-in-then-out}
+
+::: {.absolute height="50" width="900" top=650 left=90}
+::: {.box}
+:::
+:::
+
+
+
+:::
+
+## Why not better?
+
+We numerically calculate that for our model $P(E) \approx 0$. Why is the error higher?
+
+- Model not flexible enough
+- Prior could be misspecified
+- Approximations in inference introducing errors
+
+
+## Conclusion
+
+- Causal discovery requires assumptions
+- Bayesian model selection provides a way of encoding assumptions
+- Allows for use of flexible models and specification of realistic assumptions
+- This leads to good performance
+- Specific choice of assumptions still depends on the problem at hand
+
+::: {style="text-align: center"}
+Causal representation $\to$ Learn variables + Causal structure $\to$ Need flexible models!
+::: -->

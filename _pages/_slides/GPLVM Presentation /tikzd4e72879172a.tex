@@ -1,0 +1,20 @@
+\documentclass[
+%% TIKZ_CLASSOPTION %%
+tikz
+]{standalone}
+\usepackage{amsmath}
+\usetikzlibrary{matrix}
+%% EXTRA_TIKZ_PREAMBLE_CODE %%
+\begin{document}
+%% TIKZ_CODE %%
+\begin{tikzpicture}
+
+
+    \node (img1) at (0, 0) {\includegraphics[width=5cm]{3d_s_curve.png}}
+
+    \node (img2) at (7, 0) {\includegraphics[width=5cm]{3d_s_curve_flat.png}}
+
+    \draw[thick, ->] (img1.east) -- ++(1, 0) -- (img2.west)
+
+\end{tikzpicture}
+\end{document}
