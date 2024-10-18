@@ -1,0 +1,176 @@
+/*-- scss:defaults --*/
+
+$body-bg: #fff;
+$body-color:#131516;
+$presentation-heading-color: #003E74;
+$link-color: #42affa;
+$accent: #107895;
+$accent2: #9a2515;
+
+$right-arrow: "\2192"; // Unicode character for right arrow
+
+@import url(https://fonts.googleapis.com/css?family=Roboto:200,200i,300,300i,350,350i,400,400i);
+$font-family-sans-serif: "Roboto", sans-serif !default;
+$presentation-font-size-root: 30px;
+$selection-bg: #26351c !default;
+
+
+$presentation-heading-font: "Roboto", sans-serif !default;
+$presentation-heading-font-weight: 200;
+/*-- scss:rules --*/
+
+
+
+.reveal a {
+    line-height: 1.5em;
+  }
+
+  .reveal p {
+    font-weight: 300;
+    margin-top: 1.25em;
+  }
+
+.reveal h2 {
+	background-color:#003E74;
+	padding: 5px 0px 5px 10px;
+	color: #fafafa;
+	border-radius: 12px;
+}
+
+.reveal .slide-number a {
+	font-size: 120%;
+	background-color: #fafafa;
+	border-radius: 12px;
+	padding: 5px;
+}
+
+#title-slide {
+    text-align: center;
+
+    .title {
+      font-size: 2.0em;
+      font-weight: 350;
+      line-height: 1;
+    }
+    .subtitle {
+        color: #9a2515;
+        font-style: italic;
+        line-height: 2;
+      }
+      .institute,
+      .quarto-title-affiliation,
+      .quarto-title-author-email {
+        font-style: italic;
+        font-size: 80%;
+        color: #7F7F7F;
+      }
+
+      .author,
+      .quarto-title-author-name {
+        color: $body-color;
+      }
+
+      .quarto-title-authors {
+        display: flex;
+        justify-content: left;
+
+        .quarto-title-author {
+            padding-top: 2em;
+          padding-left: 1em;
+          padding-right: 0em;
+          width: 100%;
+        }
+      }
+}
+
+.MathJax_CHTML {
+    font-size: 1.0em;
+}
+
+.reveal h2 {
+    font-weight: 350;
+    font-size: 1.4em;
+  }
+
+  .reveal h3 {
+    color: $accent;
+    font-style: italic;
+    font-weight: 350;
+    font-size: 0.95em;
+  }
+
+  .reveal h4 {
+    color: $accent2;
+    font-weight: 350;
+    margin-top: 1.25em;
+  }
+
+
+.reveal .slide blockquote {
+  border-left: 3px solid $text-muted;
+  padding-left: 0.5em;
+}
+
+
+.reveal ul {
+    font-weight: 300;
+    padding-left: 16px;
+
+    li::marker {
+      color: mix($accent, white, 70%);
+    }
+  }
+
+  .reveal ul ul {
+    list-style: none;
+
+    li:before {
+      content: $right-arrow;
+      color: mix($accent, white, 60%);
+      display: inline-block;
+      width: 1em;
+      margin-left: -1em;
+      margin-right: 0.5em;
+    }
+  }
+
+  // Ordered lists
+
+  .reveal ol {
+    font-weight: 300;
+    padding-left: 16px;
+
+    li::marker {
+      color: $accent;
+    }
+  }
+
+  .box {
+    color: #D24000;
+    background-color: transparent;
+    margin: 1px;
+    padding: 5px 2px 5px 2px;
+    border: 2px solid;
+    height: 100%
+  }
+
+  .MathJax {
+    color: #003E74;
+    font-size: 30px;
+
+}
+
+// .flex-top {
+//   display: flex;
+//   align-items: flex-start; /* Align items to the top */
+// }
+
+// .flex-column {
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: flex-start; /* Ensures the text and image align at the top */
+// }
+
+// .column-item {
+//   margin-top: 0; /* Ensure no additional top margin */
+// }
