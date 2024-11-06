@@ -5,7 +5,7 @@ permalink: /talks/
 author_profile: true
 ---
 
-- Talk on Gaussian process latent variable models at the [Sargent Centre 2024 Summer School on data-driven optimisation](https://www.imperial.ac.uk/process-systems-engineering/courses-and-seminars/summer-school/). [<a href="https://rsedgwick.github.io/_talks/_slides/GPLVM%20Presentation/presentation.html" title="slides">slides</a>]
+- Talk on Gaussian process latent variable models at the [Sargent Centre 2024 Summer School on data-driven optimisation](https://www.imperial.ac.uk/process-systems-engineering/courses-and-seminars/summer-school/). [<a href="https://rsedgwick.github.io/files/Gaussian%20Process%20Latent%20Variable%20Models.pdf" title="slides">slides</a>]
 
 - Talk on Transfer Learning Gaussian Processes for DNA Design at the [Gaussian Process Summer School 2024](https://gpss.cc/gpss24/workshop.html). [[video](https://www.youtube.com/watch?list=PLZ_xn3EIbxZF-HhT99I3yIb-BdylSM3M-&v=JQOKCbVLAEg)] [[slides](https://gpss.cc/gpss24/slides/Sedgwick2024.pdf)]
 
