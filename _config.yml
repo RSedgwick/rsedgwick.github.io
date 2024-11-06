@@ -121,6 +121,7 @@ author:
 include:
   - .htaccess
   - _pages
+  - _pages/_slides/GPLVM Presentation
   - files
 exclude:
   - "*.sublime-project"
