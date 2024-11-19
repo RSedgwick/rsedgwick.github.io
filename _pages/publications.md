@@ -5,6 +5,10 @@ permalink: /publications/
 author_profile: true
 ---
 
+[Continuous Bayesian Model Selection for Multivariate Causal Discovery](https://arxiv.org/abs/2411.10154) \
+**Ruby Sedgwick***, Anish Dhir, Avinash Kori, Ben Glocker, Mark van der Wilk, *equal contribution \ 
+_Under Review_
+
 [Transfer Learning Bayesian Optimization to Design Competitor DNA Molecules for Use in Diagnostic Assays](http://doi.org/10.1002/bit.28854) \
 **Ruby Sedgwick**, John P. Goertz, Molly M. Stevens, Ruth Misener, Mark van der Wilk \
 _Biotechnology and Bioengineering_
@@ -15,7 +19,7 @@ _Climate Change AI Neurips Workshop 2023_
 
 [Competitive Amplification Networks enable molecular pattern recognition with PCR](https://www.biorxiv.org/content/10.1101/2023.06.29.546934.abstract) \
 John P Goertz, **Ruby Sedgwick**, Francesca Smith, Myrsini P Kaforou, Victoria J Wright, Jethro A Herberg, Zsofia Kote-Jarai, Ros Eeles, Michael Levin, Ruth Misener, Mark van der Wilk, Molly M Stevens \
-_In preparation_
+_Under Review_
 
 [Design of Experiments for Verifying Biomolecular Networks](https://arxiv.org/pdf/2011.10575) \
 **Ruby Sedgwick**, John Goertz, Molly Stevens, Ruth Misener, Mark van der Wilk \
