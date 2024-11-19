@@ -6,7 +6,7 @@ author_profile: true
 ---
 
 [Continuous Bayesian Model Selection for Multivariate Causal Discovery](https://arxiv.org/abs/2411.10154) \
-**Ruby Sedgwick***, Anish Dhir, Avinash Kori, Ben Glocker, Mark van der Wilk, *equal contribution \ 
+**Ruby Sedgwick***, Anish Dhir*, Avinash Kori, Ben Glocker, Mark van der Wilk, *equal contribution \ 
 _Under Review_
 
 [Transfer Learning Bayesian Optimization to Design Competitor DNA Molecules for Use in Diagnostic Assays](http://doi.org/10.1002/bit.28854) \
