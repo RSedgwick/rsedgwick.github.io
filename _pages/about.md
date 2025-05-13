@@ -14,7 +14,8 @@ I am a research scientist at [Xyme](https://www.xyme.ai/) working on machine lea
 
 Projects
 ======
-- At Xyme, I am currently working on active learning and Bayesian optimisation methods at various points of the design pipeline to make the design of computational enzymes more efficient. 
+- At Xyme, I am currently working on active learning and Bayesian optimisation methods at various points of the design pipeline to make the design of computational enzymes more efficient.
+- I had the opportunity to share my thoughts on experimental design for discrete and mixed input spaces in an article on the poteintial of AI in chemistry for Chemical Society Reviews. You can read the full paper [here](https://pubs.rsc.org/en/content/articlelanding/2025/cs/d5cs00146c)
 - I recently worked on a project with researchers at Imperial College London and Oxford University using Bayesian model selection for multivariate causal discovery. This was accepted at _ICML 2025_, you can find the arxiv version of the paper [here](https://arxiv.org/abs/2411.10154)
 - I collaborated on a project extending Gaussian process latent variable models to the case where each data point is a weighted sum of signals, specifically for applications in spectroscopy. You can find the _AISTATS 2025_ paper [here](https://arxiv.org/abs/2402.09122)
 - In collaboration with experimentalists from Oxford University and KTH Royal Institute of Technology in Sweden, I worked on an integrated machine learning design of experiments approach for the development of lateral flow tests.
