@@ -7,7 +7,15 @@ author_profile: true
 
 [Continuous Bayesian Model Selection for Multivariate Causal Discovery](https://arxiv.org/abs/2411.10154) \
 **Ruby Sedgwick\***, Anish Dhir\*, Avinash Kori, Ben Glocker, Mark van der Wilk, \*equal contribution  \
-_Under Review_
+_ICML 2025_
+
+[Weighted-Sum of Gaussian Process Latent Variable Models](https://arxiv.org/abs/2402.09122) \
+James Odgers, **Ruby Sedgwick**, Chrysoula Kappatou, Ruth Misener, Sarah Filippi \
+_AISTATS 2025_
+
+[Cross-disciplinary perspectives on the potential for artificial intelligence across chemistry](https://pubs.rsc.org/en/content/articlelanding/2025/cs/d5cs00146c) \
+Austin M. Mroz, Annabel R. Basford, Friedrich Hastedt, Isuru Shavindra Jayasekera, Irea Mosquera-Lois, **Ruby Sedgwick**, Pedro J. Ballester, Joshua D. Bocarsly, Ehecatl Antonio del Rı´o Chanona, Matthew L. Evans, Jarvist M. Frost, Alex M. Ganose, Rebecca L. Greenaway, King Kuok (Mimi) Hii, Yingzhen Li, Ruth Misener, Aron Walsh, Dandan Zhangbg and Kim E. Jelfs \
+_Chemical Society Reviews 2025_
 
 [Transfer Learning Bayesian Optimization to Design Competitor DNA Molecules for Use in Diagnostic Assays](http://doi.org/10.1002/bit.28854) \
 **Ruby Sedgwick**, John P. Goertz, Molly M. Stevens, Ruth Misener, Mark van der Wilk \
