@@ -10,15 +10,14 @@ redirect_from:
 
 About Me
 ======
-
-I am a post-doctoral research assistant at Imperial College London interested in using Bayesian machine learning and causality to drive new discoveries in biotechnology. My research so far has focused on using Gaussian processes for the experimental design of biotechnology experiments and for causal discovery. I previously did a PhD at Imperial College London as part of the [UKRI Centre for Doctoral Training in AI for Healthcare](https://ai4health.io/) supervised by [Ruth Misener](https://www.imperial.ac.uk/people/r.misener), [Mark van der Wilk](https://mvdw.uk/) and [Molly Stevens](https://www.stevensgroup.org/).  
+I am a research scientist at [Xyme](https://www.xyme.ai/) working on machine learning guided experimental design for AI designed enzymes. This includes active learning and Bayesian optimisation for high dimensional discrete inputs (i.e. proteins) including multi-fidelity, multi-objective and constrained problems. In general, I am interested in using Bayesian machine learning and causality to drive new discoveries in biotechnology. Previously, I was a post-doctoral research assistant at Imperial College London where my research focused on using Gaussian processes for the experimental design of biotechnology experiments and for Bayesian causal discovery. I also did my PhD at Imperial College London as part of the [UKRI Centre for Doctoral Training in AI for Healthcare](https://ai4health.io/) supervised by [Ruth Misener](https://www.imperial.ac.uk/people/r.misener), [Mark van der Wilk](https://mvdw.uk/) and [Molly Stevens](https://www.stevensgroup.org/).  
 
 Projects
 ======
-- Currently, I am working on a project with researchers at Imperial College London and Oxford University using Bayesian model selection for multivariate causal discovery. Check back soon for updates.
-- I've also collaborated on a project extending Gaussian process latent variable models to the case where each data point is a weighted sum of signals, specifically for applications in spectroscopy.
-- In collaboration with experimentalists from Oxford University and KTH Royal Institute of Technology in Sweden, I am working on an integrated machine learning design of experiments approach 
- the development of lateral flow tests.
+- At Xyme, I am currently working on active learning and Bayesian optimisation methods at various points of the design pipeline to make the design of computational enzymes more efficient. 
+- I recently worked on a project with researchers at Imperial College London and Oxford University using Bayesian model selection for multivariate causal discovery. This was accepted at _ICML 2025_, you can find the arxiv version of the paper [here](https://arxiv.org/abs/2411.10154)
+- I collaborated on a project extending Gaussian process latent variable models to the case where each data point is a weighted sum of signals, specifically for applications in spectroscopy. You can find the _AISTATS 2025_ paper [here](https://arxiv.org/abs/2402.09122)
+- In collaboration with experimentalists from Oxford University and KTH Royal Institute of Technology in Sweden, I worked on an integrated machine learning design of experiments approach for the development of lateral flow tests.
 - My main PhD project focused on transfer learning Bayesian optimisation to optimise DNA molecules for use in medical diagnostics. You can find the _Biotechnology and Bioengineering_ article [here](http://doi.org/10.1002/bit.28854).
 - I also developed a design of experiments strategy for validating or invalidating designed biomolecular networks in a small number of experiments. You can find our _NeurIPS 2020 ML4Molecules Workshop_ paper [here](https://arxiv.org/abs/2011.10575).  
 - I co-supervised a master's student project investigating the use of sparse Gaussian processes to improve air pollution predictions in Kampala, in a collaboration with [AirQo](https://www.airqo.net/) that started at the [2022 AI for Social Good Dagstuhl workshop](https://ai4sg-dagstuhl.github.io/). You can read our _NeurIPS 2023 Climate Change AI workshop paper_ [here](https://arxiv.org/abs/2311.16625).  
